@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="LookHandles.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:LookHandles"
+    Title="LookHandles 3.0">
+
+	<Grid x:Name="RootGrid" Padding="12" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="*" />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+
+		<!-- Title -->
+		<TextBlock Grid.Row="0"
+                   Text="LookHandles 3.0 - Window Spy Tool"
+                   FontSize="18"
+                   FontWeight="Bold"
+                   Margin="0,0,0,12" />
+
+		<!-- Main Content -->
+		<Grid Grid.Row="1">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="12" />
+				<ColumnDefinition Width="*" />
+			</Grid.ColumnDefinitions>
+
+			<!-- Left Panel: Window Info -->
+			<Grid Grid.Column="0">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="*" />
+				</Grid.RowDefinitions>
+
+				<TextBlock Grid.Row="0" Text="Window Information" FontWeight="SemiBold" Margin="0,0,0,8" />
+
+				<ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+					<StackPanel Spacing="6">
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="100" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+							<TextBlock Grid.Column="0" Text="Handle:" VerticalAlignment="Center" />
+							<TextBox Grid.Column="1" x:Name="txtWindowHandle" IsReadOnly="True" />
+						</Grid>
+
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="100" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+							<TextBlock Grid.Column="0" Text="Title:" VerticalAlignment="Center" />
+							<TextBox Grid.Column="1" x:Name="txtWindowTitle" />
+						</Grid>
+
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="100" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+							<TextBlock Grid.Column="0" Text="Class:" VerticalAlignment="Center" />
+							<TextBox Grid.Column="1" x:Name="txtClassName" IsReadOnly="True" />
+						</Grid>
+
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="100" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+							<TextBlock Grid.Column="0" Text="Type:" VerticalAlignment="Center" />
+							<TextBox Grid.Column="1" x:Name="txtWindowType" IsReadOnly="True" TextWrapping="Wrap" />
+						</Grid>
+
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="100" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+							<TextBlock Grid.Column="0" Text="Style:" VerticalAlignment="Center" />
+							<TextBox Grid.Column="1" x:Name="txtStyle" IsReadOnly="True" />
+						</Grid>
+
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="100" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+							<TextBlock Grid.Column="0" Text="ExStyle:" VerticalAlignment="Center" />
+							<TextBox Grid.Column="1" x:Name="txtExStyle" IsReadOnly="True" />
+						</Grid>
+
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="100" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+							<TextBlock Grid.Column="0" Text="Window ID:" VerticalAlignment="Center" />
+							<TextBox Grid.Column="1" x:Name="txtWindowId" IsReadOnly="True" />
+						</Grid>
+
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="100" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+							<TextBlock Grid.Column="0" Text="Parent:" VerticalAlignment="Center" />
+							<TextBox Grid.Column="1" x:Name="txtParentHandle" IsReadOnly="True" />
+						</Grid>
+
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="100" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+							<TextBlock Grid.Column="0" Text="Prt Class:" VerticalAlignment="Center" />
+							<TextBox Grid.Column="1" x:Name="txtParentClass" IsReadOnly="True" />
+						</Grid>
+
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="100" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+							<TextBlock Grid.Column="0" Text="Prt Title:" VerticalAlignment="Center" />
+							<TextBox Grid.Column="1" x:Name="txtParentTitle" IsReadOnly="True" />
+						</Grid>
+
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="40" />
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="35" />
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="35" />
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="45" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+							<TextBlock Grid.Column="0" Text="Left:" VerticalAlignment="Center" />
+							<TextBox Grid.Column="1" x:Name="txtLeft" IsReadOnly="True" />
+							<TextBlock Grid.Column="2" Text="Top:" VerticalAlignment="Center" Margin="4,0,0,0" />
+							<TextBox Grid.Column="3" x:Name="txtTop" IsReadOnly="True" />
+							<TextBlock Grid.Column="4" Text="Rgt:" VerticalAlignment="Center" Margin="4,0,0,0" />
+							<TextBox Grid.Column="5" x:Name="txtRight" IsReadOnly="True" />
+							<TextBlock Grid.Column="6" Text="Btm:" VerticalAlignment="Center" Margin="4,0,0,0" />
+							<TextBox Grid.Column="7" x:Name="txtBottom" IsReadOnly="True" />
+						</Grid>
+
+						<Grid>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="50" />
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="55" />
+								<ColumnDefinition Width="*" />
+							</Grid.ColumnDefinitions>
+							<TextBlock Grid.Column="0" Text="Width:" VerticalAlignment="Center" />
+							<TextBox Grid.Column="1" x:Name="txtWidth" IsReadOnly="True" />
+							<TextBlock Grid.Column="2" Text="Height:" VerticalAlignment="Center" />
+							<TextBox Grid.Column="3" x:Name="txtHeight" IsReadOnly="True" />
+						</Grid>
+					</StackPanel>
+				</ScrollViewer>
+			</Grid>
+
+			<!-- Right Panel: Process Info + Actions -->
+			<Grid Grid.Column="2">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="*" />
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="Auto" />
+				</Grid.RowDefinitions>
+
+				<TextBlock Grid.Row="0" Text="Process Information" FontWeight="SemiBold" Margin="0,0,0,8" />
+
+				<StackPanel Grid.Row="1" Spacing="6">
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="85" />
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="85" />
+							<ColumnDefinition Width="*" />
+						</Grid.ColumnDefinitions>
+						<TextBlock Grid.Column="0" Text="Thread ID:" VerticalAlignment="Center" />
+						<TextBox Grid.Column="1" x:Name="txtThreadId" IsReadOnly="True" />
+						<TextBlock Grid.Column="2" Text="Process ID:" VerticalAlignment="Center" Margin="4,0,0,0" />
+						<TextBox Grid.Column="3" x:Name="txtProcessId" IsReadOnly="True" />
+					</Grid>
+
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="85" />
+							<ColumnDefinition Width="*" />
+						</Grid.ColumnDefinitions>
+						<TextBlock Grid.Column="0" Text="Process:" VerticalAlignment="Center" />
+						<TextBox Grid.Column="1" x:Name="txtProcessName" IsReadOnly="True" />
+					</Grid>
+
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="85" />
+							<ColumnDefinition Width="*" />
+						</Grid.ColumnDefinitions>
+						<TextBlock Grid.Column="0" Text="Path:" VerticalAlignment="Center" />
+						<TextBox Grid.Column="1" x:Name="txtProcessPath" IsReadOnly="True" TextWrapping="Wrap" />
+					</Grid>
+
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="85" />
+							<ColumnDefinition Width="*" />
+						</Grid.ColumnDefinitions>
+						<TextBlock Grid.Column="0" Text="Instance:" VerticalAlignment="Center" />
+						<TextBox Grid.Column="1" x:Name="txtInstanceHandle" IsReadOnly="True" />
+					</Grid>
+
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="85" />
+							<ColumnDefinition Width="*" />
+						</Grid.ColumnDefinitions>
+						<TextBlock Grid.Column="0" Text="Module:" VerticalAlignment="Center" />
+						<TextBox Grid.Column="1" x:Name="txtModuleName" IsReadOnly="True" />
+					</Grid>
+
+					<Grid>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="85" />
+							<ColumnDefinition Width="*" />
+						</Grid.ColumnDefinitions>
+						<TextBlock Grid.Column="0" Text="Mod Path:" VerticalAlignment="Center" />
+						<TextBox Grid.Column="1" x:Name="txtModulePath" IsReadOnly="True" TextWrapping="Wrap" />
+					</Grid>
+				</StackPanel>
+
+				<!-- Window List -->
+				<Grid Grid.Row="2" Margin="0,12,0,0">
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="*" />
+					</Grid.RowDefinitions>
+					<TextBlock Grid.Row="0" Text="Window List" FontWeight="SemiBold" Margin="0,0,0,4" />
+					<ListView Grid.Row="1"
+                              x:Name="lvWindows"
+                              SelectionChanged="lvWindows_SelectionChanged"
+                              BorderBrush="{ThemeResource SystemControlForegroundBaseMediumLowBrush}"
+                              BorderThickness="1" />
+				</Grid>
+
+				<!-- Action Buttons -->
+				<Grid Grid.Row="3" Margin="0,8,0,0">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*" />
+						<ColumnDefinition Width="*" />
+					</Grid.ColumnDefinitions>
+					<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6">
+						<Button x:Name="btnSetTitle" Content="Set Title" Click="btnSetTitle_Click" />
+						<Button x:Name="btnRefresh" Content="Refresh" Click="btnRefresh_Click" />
+					</StackPanel>
+				</Grid>
+
+				<Grid Grid.Row="4" Margin="0,8,0,0">
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+					</Grid.RowDefinitions>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="*" />
+						<ColumnDefinition Width="*" />
+						<ColumnDefinition Width="*" />
+					</Grid.ColumnDefinitions>
+
+					<Button Grid.Row="0" Grid.Column="0" x:Name="btnMinimize" Content="Minimize" Click="btnMinimize_Click" Margin="2" />
+					<Button Grid.Row="0" Grid.Column="1" x:Name="btnMaximize" Content="Maximize" Click="btnMaximize_Click" Margin="2" />
+					<Button Grid.Row="0" Grid.Column="2" x:Name="btnNormal" Content="Normal" Click="btnNormal_Click" Margin="2" />
+
+					<Button Grid.Row="1" Grid.Column="0" x:Name="btnShow" Content="Show" Click="btnShow_Click" Margin="2" />
+					<Button Grid.Row="1" Grid.Column="1" x:Name="btnHide" Content="Hide" Click="btnHide_Click" Margin="2" />
+					<Button Grid.Row="1" Grid.Column="2" x:Name="btnFlash" Content="Flash" Click="btnFlash_Click" Margin="2" />
+
+					<Button Grid.Row="2" Grid.Column="0" x:Name="btnTopmost" Content="Topmost" Click="btnTopmost_Click" Margin="2" />
+					<Button Grid.Row="2" Grid.Column="1" x:Name="btnNoTopmost" Content="No Topmost" Click="btnNoTopmost_Click" Margin="2" />
+					<Button Grid.Row="2" Grid.Column="2" x:Name="btnClose" Content="Close" Click="btnClose_Click" Margin="2" />
+
+					<Button Grid.Row="3" Grid.Column="0" x:Name="btnEnable" Content="Enable" Click="btnEnable_Click" Margin="2" />
+					<Button Grid.Row="3" Grid.Column="1" x:Name="btnDisable" Content="Disable" Click="btnDisable_Click" Margin="2" />
+					<Button Grid.Row="3" Grid.Column="2" x:Name="btnKillProcess" Content="Kill Process" Click="btnKillProcess_Click" Margin="2" />
+				</Grid>
+			</Grid>
+		</Grid>
+
+		<!-- Bottom Options Bar -->
+		<Grid Grid.Row="2" Margin="0,12,0,0">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="Auto" />
+			</Grid.ColumnDefinitions>
+
+			<CheckBox Grid.Column="0" x:Name="chkTopmost" Content="Always on Top" Checked="chkTopmost_Checked" Unchecked="chkTopmost_Unchecked" />
+			<CheckBox Grid.Column="1" x:Name="chkAutoMode" Content="Auto Mode" Margin="12,0,0,0" Checked="chkAutoMode_Checked" Unchecked="chkAutoMode_Unchecked" />
+			<CheckBox Grid.Column="2" x:Name="chkShowHidden" Content="Show Hidden" Margin="12,0,0,0" Checked="chkShowHidden_Checked" Unchecked="chkShowHidden_Unchecked" />
+			<CheckBox Grid.Column="3" x:Name="chkEnableDisabled" Content="Enable Grayed" Margin="12,0,0,0" Checked="chkEnableDisabled_Checked" Unchecked="chkEnableDisabled_Unchecked" />
+
+			<Button Grid.Column="5" x:Name="btnFindWindow" Content="Find Window" Click="btnFindWindow_Click" Margin="8,0,0,0" />
+			<Button Grid.Column="6" x:Name="btnSpy" Content="Spy" Click="btnSpy_Click" Margin="8,0,0,0" />
+		</Grid>
+	</Grid>
+</Window>
