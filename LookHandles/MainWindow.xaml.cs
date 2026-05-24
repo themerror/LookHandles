@@ -44,12 +44,12 @@ public sealed partial class MainWindow : Window
 	{
 		this.InitializeComponent();
 
-		// WinUI 3 Window has no Width/Height properties - use AppWindow instead
 		SetWindowSize(900, 720);
 
 		_currentHwnd = default;
 		lvWindows.ItemsSource = _windowList;
 		Title = "LookHandles 3.0";
+		ExtendsContentIntoTitleBar = true;
 
 		RefreshWindowList();
 	}
