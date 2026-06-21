@@ -27,6 +27,8 @@ public sealed partial class MainWindow : Window
 
 	private static readonly HWND HWND_NOTOPMOST_VALUE = new HWND(new IntPtr(-2));
 
+	private const uint WM_CLOSE = 0x0010;
+
 	private ObservableCollection<WindowListItem> _windowList = new();
 	private WindowInfo? _currentWindow;
 	private HWND _currentHwnd;
@@ -35,7 +37,9 @@ public sealed partial class MainWindow : Window
 	private bool _enableDisabledButtons = false;
 	private Timer? _autoModeTimer;
 	private bool _isFindingWindow = false;
+	private bool _findWindowJustCompleted = false;
 	private bool _isSpying = false;
+	private uint _myProcessId;
 
 	// Accumulate EnumWindows results
 	private List<WindowListItem> _enumBuffer = new();
@@ -47,6 +51,7 @@ public sealed partial class MainWindow : Window
 		SetWindowSize(900, 720);
 
 		_currentHwnd = default;
+		_myProcessId = (uint)Environment.ProcessId;
 		lvWindows.ItemsSource = _windowList;
 		Title = "LookHandles 3.0";
 		ExtendsContentIntoTitleBar = true;
@@ -73,12 +78,13 @@ public sealed partial class MainWindow : Window
 	{
 		_windowList.Clear();
 		_enumBuffer = new List<WindowListItem>();
+		var myHwnd = GetMyHwnd();
 
 		// Method group conversion to WNDENUMPROC delegate
 		// (instance method - 'this' is captured by the delegate)
 		unsafe
 		{
-			PInvoke.EnumWindows(EnumWindowsCallback, new LPARAM(0));
+			PInvoke.EnumWindows(EnumWindowsCallback, new LPARAM((nint)myHwnd.Value));
 		}
 
 		// Sort: visible first, then by process name
@@ -103,9 +109,8 @@ public sealed partial class MainWindow : Window
 			if (!_showHiddenWindows && !PInvoke.IsWindowVisible(hwnd))
 				return new BOOL(1);
 
-			// Skip our own window
-			var myHwnd = GetMyHwnd();
-			if ((nint)hwnd.Value == (nint)myHwnd.Value)
+			// Skip our own process windows
+			if ((nint)hwnd.Value == lParam.Value || IsWindowOwnedByProcess(hwnd, _myProcessId))
 				return new BOOL(1);
 
 			// Get window text using stackalloc Span<char> (no heap allocation)
@@ -153,6 +158,22 @@ public sealed partial class MainWindow : Window
 		return new BOOL(1);
 	}
 
+	private static unsafe bool IsWindowOwnedByProcess(HWND hwnd, uint processId)
+	{
+		if ((nint)hwnd.Value == 0)
+			return false;
+		try
+		{
+			uint pid = 0;
+			PInvoke.GetWindowThreadProcessId(hwnd, &pid);
+			return pid == processId;
+		}
+		catch
+		{
+			return false;
+		}
+	}
+
 	private static bool IsWindowVisibleSafe(HWND hwnd)
 	{
 		try { return PInvoke.IsWindowVisible(hwnd); } catch { return false; }
@@ -164,6 +185,11 @@ public sealed partial class MainWindow : Window
 	{
 		if (!PInvoke.IsWindow(hwnd))
 			return;
+
+		if (_enableDisabledButtons && !PInvoke.IsWindowEnabled(hwnd))
+		{
+			PInvoke.EnableWindow(hwnd, true);
+		}
 
 		_currentHwnd = hwnd;
 		_currentWindow = new WindowInfo(hwnd);
@@ -313,7 +339,7 @@ public sealed partial class MainWindow : Window
 	private void btnClose_Click(object sender, RoutedEventArgs e)
 	{
 		if (!ValidateWindow()) return;
-		PInvoke.PostMessage(_currentHwnd, 0x0010, default, default);
+		PInvoke.PostMessage(_currentHwnd, WM_CLOSE, default, default);
 		Task.Delay(500).ContinueWith(_ =>
 		{
 			DispatcherQueue.TryEnqueue(() => RefreshWindowList());
@@ -445,53 +471,93 @@ public sealed partial class MainWindow : Window
 
 	private void btnFindWindow_Click(object sender, RoutedEventArgs e)
 	{
-		if (_isFindingWindow)
+		if (_findWindowJustCompleted)
 		{
-			_isFindingWindow = false;
-			btnFindWindow.Content = "Find Window";
+			_findWindowJustCompleted = false;
 			return;
 		}
 
+		if (_isFindingWindow)
+		{
+			StopFindWindow();
+			return;
+		}
+
+		StartFindWindow();
+	}
+
+	private void StartFindWindow()
+	{
 		_isFindingWindow = true;
-		btnFindWindow.Content = "Dragging...";
+		btnFindWindow.Content = "Release to select";
 		btnFindWindow.PointerPressed += FindWindow_PointerPressed;
+		RootGrid.PointerMoved += FindWindow_PointerMoved;
+		RootGrid.PointerReleased += FindWindow_PointerReleased;
+	}
+
+	private void StopFindWindow()
+	{
+		_isFindingWindow = false;
+		btnFindWindow.Content = "Find Window";
+		btnFindWindow.PointerPressed -= FindWindow_PointerPressed;
+		RootGrid.PointerMoved -= FindWindow_PointerMoved;
+		RootGrid.PointerReleased -= FindWindow_PointerReleased;
+		ToolTipService.SetToolTip(btnFindWindow, "Drag to select any window on screen");
 	}
 
 	private void FindWindow_PointerPressed(object sender, PointerRoutedEventArgs e)
 	{
+		if (!_isFindingWindow) return;
+
 		var pointer = e.GetCurrentPoint(btnFindWindow);
 		if (pointer.Properties.IsLeftButtonPressed)
 		{
-			btnFindWindow.CapturePointer(e.Pointer);
-			btnFindWindow.PointerMoved += FindWindow_PointerMoved;
-			btnFindWindow.PointerReleased += FindWindow_PointerReleased;
+			RootGrid.CapturePointer(e.Pointer);
 		}
 	}
 
-	private void FindWindow_PointerMoved(object sender, PointerRoutedEventArgs e)
+	private unsafe void FindWindow_PointerMoved(object sender, PointerRoutedEventArgs e)
 	{
 		if (!_isFindingWindow) return;
+
+		try
+		{
+			var hwnd = GetWindowFromCursor();
+			unsafe
+			{
+				if ((nint)hwnd.Value != 0)
+				{
+					var rootHwnd = PInvoke.GetAncestor(hwnd, GET_ANCESTOR_FLAGS.GA_ROOT);
+					if ((nint)rootHwnd.Value != 0)
+						hwnd = rootHwnd;
+				}
+			}
+
+			if ((nint)hwnd.Value != 0 && PInvoke.IsWindow(hwnd) && !IsWindowOwnedByProcess(hwnd, _myProcessId))
+			{
+				// Update button tooltip with current target while dragging
+				Span<char> textBuffer = stackalloc char[256];
+				int len = PInvoke.GetWindowText(hwnd, textBuffer);
+				string title = len > 0 ? textBuffer.Slice(0, len).ToString() : "(no title)";
+				ToolTipService.SetToolTip(btnFindWindow, $"Target: {title} ({(nint)hwnd.Value:X8})");
+			}
+			else
+			{
+				ToolTipService.SetToolTip(btnFindWindow, "Release to select window");
+			}
+		}
+		catch { }
 	}
 
 	private void FindWindow_PointerReleased(object sender, PointerRoutedEventArgs e)
 	{
 		if (!_isFindingWindow) return;
 
-		btnFindWindow.ReleasePointerCapture(e.Pointer);
-		btnFindWindow.PointerMoved -= FindWindow_PointerMoved;
-		btnFindWindow.PointerReleased -= FindWindow_PointerReleased;
+		RootGrid.ReleasePointerCapture(e.Pointer);
 
-		var pointer = e.GetCurrentPoint(null);
-		var position = pointer.Position;
-
-		// Convert to screen coordinates
-		var myHwnd = GetMyHwnd();
-		if (PInvoke.GetWindowRect(myHwnd, out var myRect))
+		try
 		{
-			int screenX = myRect.left + (int)position.X;
-			int screenY = myRect.top + (int)position.Y;
-
-			var hwnd = WindowFromPoint(screenX, screenY);
+			var hwnd = GetWindowFromCursor();
 			unsafe
 			{
 				if ((nint)hwnd.Value != 0)
@@ -501,7 +567,7 @@ public sealed partial class MainWindow : Window
 					if ((nint)rootHwnd.Value != 0)
 						hwnd = rootHwnd;
 
-					DispatcherQueue.TryEnqueue(() =>
+					if (!IsWindowOwnedByProcess(hwnd, _myProcessId))
 					{
 						SelectWindow(hwnd);
 						foreach (var item in _windowList)
@@ -513,17 +579,17 @@ public sealed partial class MainWindow : Window
 								break;
 							}
 						}
-
-						_isFindingWindow = false;
-						btnFindWindow.Content = "Find Window";
-					});
-					return;
+					}
 				}
 			}
 		}
-
-		_isFindingWindow = false;
-		btnFindWindow.Content = "Find Window";
+		catch { }
+		finally
+		{
+			_findWindowJustCompleted = true;
+			StopFindWindow();
+			ToolTipService.SetToolTip(btnFindWindow, "Drag to select any window on screen");
+		}
 	}
 
 	// ========== Spy mode ==========
@@ -533,13 +599,13 @@ public sealed partial class MainWindow : Window
 		if (_isSpying)
 		{
 			StopSpy();
-			btnSpy.Content = "Spy";
+			btnSpy.Content = "Follow Foreground";
 			_isSpying = false;
 		}
 		else
 		{
 			_isSpying = true;
-			btnSpy.Content = "Stop Spy";
+			btnSpy.Content = "Stop Following";
 			StartSpy();
 		}
 	}
@@ -556,28 +622,24 @@ public sealed partial class MainWindow : Window
 					var hwnd = PInvoke.GetForegroundWindow();
 					unsafe
 					{
-						if ((nint)hwnd.Value != 0 && (nint)hwnd.Value != (nint)lastHwnd.Value)
+						if ((nint)hwnd.Value != 0 && (nint)hwnd.Value != (nint)lastHwnd.Value && !IsWindowOwnedByProcess(hwnd, _myProcessId))
 						{
 							lastHwnd = hwnd;
-							var myHwnd = GetMyHwnd();
-							if ((nint)hwnd.Value != (nint)myHwnd.Value)
+							DispatcherQueue.TryEnqueue(() =>
 							{
-								DispatcherQueue.TryEnqueue(() =>
+								if (_isSpying)
 								{
-									if (_isSpying)
+									SelectWindow(hwnd);
+									foreach (var item in _windowList)
 									{
-										SelectWindow(hwnd);
-										foreach (var item in _windowList)
+										if ((nint)item.Handle.Value == (nint)hwnd.Value)
 										{
-											if ((nint)item.Handle.Value == (nint)hwnd.Value)
-											{
-												lvWindows.SelectedItem = item;
-												break;
-											}
+											lvWindows.SelectedItem = item;
+											break;
 										}
 									}
-								});
-							}
+								}
+							});
 						}
 					}
 				}
@@ -607,13 +669,9 @@ public sealed partial class MainWindow : Window
 					var hwnd = GetWindowFromCursor();
 					unsafe
 					{
-						if ((nint)hwnd.Value != 0)
+						if ((nint)hwnd.Value != 0 && !IsWindowOwnedByProcess(hwnd, _myProcessId))
 						{
-							var myHwnd = GetMyHwnd();
-							if ((nint)hwnd.Value != (nint)myHwnd.Value)
-							{
-								SelectWindow(hwnd);
-							}
+							SelectWindow(hwnd);
 						}
 					}
 				}

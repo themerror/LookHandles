@@ -52,9 +52,11 @@
 							<Grid.ColumnDefinitions>
 								<ColumnDefinition Width="100" />
 								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="Auto" />
 							</Grid.ColumnDefinitions>
 							<TextBlock Grid.Column="0" Text="Title:" VerticalAlignment="Center" />
 							<TextBox Grid.Column="1" x:Name="txtWindowTitle" />
+							<Button Grid.Column="2" x:Name="btnSetTitle" Content="Set Title" Click="btnSetTitle_Click" Margin="6,0,0,0" />
 						</Grid>
 
 						<Grid>
@@ -244,7 +246,16 @@
 						<RowDefinition Height="Auto" />
 						<RowDefinition Height="*" />
 					</Grid.RowDefinitions>
-					<TextBlock Grid.Row="0" Text="Window List" FontWeight="SemiBold" Margin="0,0,0,4" />
+					<Grid Grid.Row="0" Margin="0,0,0,4">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="Auto" />
+						</Grid.ColumnDefinitions>
+						<TextBlock Text="Window List" FontWeight="SemiBold" VerticalAlignment="Center" />
+						<Button Grid.Column="1" x:Name="btnRefresh" Click="btnRefresh_Click" ToolTipService.ToolTip="Refresh window list" Padding="6,2">
+							<SymbolIcon Symbol="Refresh" />
+						</Button>
+					</Grid>
 					<ListView Grid.Row="1"
                               x:Name="lvWindows"
                               SelectionChanged="lvWindows_SelectionChanged"
@@ -252,19 +263,7 @@
                               BorderThickness="1" />
 				</Grid>
 
-				<!-- Action Buttons -->
 				<Grid Grid.Row="3" Margin="0,8,0,0">
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="*" />
-						<ColumnDefinition Width="*" />
-					</Grid.ColumnDefinitions>
-					<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6">
-						<Button x:Name="btnSetTitle" Content="Set Title" Click="btnSetTitle_Click" />
-						<Button x:Name="btnRefresh" Content="Refresh" Click="btnRefresh_Click" />
-					</StackPanel>
-				</Grid>
-
-				<Grid Grid.Row="4" Margin="0,8,0,0">
 					<Grid.RowDefinitions>
 						<RowDefinition Height="Auto" />
 						<RowDefinition Height="Auto" />
@@ -313,8 +312,8 @@
 			<CheckBox Grid.Column="2" x:Name="chkShowHidden" Content="Show Hidden" Margin="12,0,0,0" Checked="chkShowHidden_Checked" Unchecked="chkShowHidden_Unchecked" />
 			<CheckBox Grid.Column="3" x:Name="chkEnableDisabled" Content="Enable Grayed" Margin="12,0,0,0" Checked="chkEnableDisabled_Checked" Unchecked="chkEnableDisabled_Unchecked" />
 
-			<Button Grid.Column="5" x:Name="btnFindWindow" Content="Find Window" Click="btnFindWindow_Click" Margin="8,0,0,0" />
-			<Button Grid.Column="6" x:Name="btnSpy" Content="Spy" Click="btnSpy_Click" Margin="8,0,0,0" />
+			<Button Grid.Column="5" x:Name="btnFindWindow" Content="Find Window" Click="btnFindWindow_Click" Margin="8,0,0,0" ToolTipService.ToolTip="Drag to select any window on screen" />
+			<Button Grid.Column="6" x:Name="btnSpy" Content="Follow Foreground" Click="btnSpy_Click" Margin="8,0,0,0" ToolTipService.ToolTip="Automatically select the active foreground window" />
 		</Grid>
 	</Grid>
 </Window>
