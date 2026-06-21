@@ -439,8 +439,12 @@ public sealed partial class MainWindow : Window
 
 	private void chkAutoMode_Checked(object sender, RoutedEventArgs e)
 	{
-		_isAutoMode = true;
-		StartAutoMode();
+		if (!_isAutoMode)
+		{
+			StopOtherTrackingModes(TrackingMode.Auto);
+			_isAutoMode = true;
+			StartAutoMode();
+		}
 	}
 
 	private void chkAutoMode_Unchecked(object sender, RoutedEventArgs e)
@@ -471,6 +475,35 @@ public sealed partial class MainWindow : Window
 		_enableDisabledButtons = false;
 	}
 
+	private enum TrackingMode
+	{
+		Auto,
+		FindWindow,
+		FollowForeground
+	}
+
+	private void StopOtherTrackingModes(TrackingMode activeMode)
+	{
+		if (activeMode != TrackingMode.Auto && _isAutoMode)
+		{
+			_isAutoMode = false;
+			StopAutoMode();
+			chkAutoMode.IsChecked = false;
+		}
+
+		if (activeMode != TrackingMode.FollowForeground && _isSpying)
+		{
+			StopSpy();
+			_isSpying = false;
+			btnSpy.Content = "Follow Foreground";
+		}
+
+		if (activeMode != TrackingMode.FindWindow && _isFindingWindow)
+		{
+			StopFindWindow();
+		}
+	}
+
 	// ========== Find Window (Drag crosshair) ==========
 
 	private void btnFindWindow_Click(object sender, RoutedEventArgs e)
@@ -487,6 +520,7 @@ public sealed partial class MainWindow : Window
 			return;
 		}
 
+		StopOtherTrackingModes(TrackingMode.FindWindow);
 		StartFindWindow();
 	}
 
@@ -625,6 +659,7 @@ public sealed partial class MainWindow : Window
 		}
 		else
 		{
+			StopOtherTrackingModes(TrackingMode.FollowForeground);
 			_isSpying = true;
 			btnSpy.Content = "Stop Following";
 			StartSpy();
