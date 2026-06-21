@@ -28,6 +28,7 @@ public sealed partial class MainWindow : Window
 	private static readonly HWND HWND_NOTOPMOST_VALUE = new HWND(new IntPtr(-2));
 
 	private const uint WM_CLOSE = 0x0010;
+	private const uint IDC_SIZEALL = 32646;
 
 	private ObservableCollection<WindowListItem> _windowList = new();
 	private WindowInfo? _currentWindow;
@@ -40,6 +41,9 @@ public sealed partial class MainWindow : Window
 	private bool _findWindowJustCompleted = false;
 	private bool _isSpying = false;
 	private uint _myProcessId;
+	private HCURSOR? _dragCursor;
+	private HCURSOR? _previousCursor;
+	private DispatcherTimer? _findWindowTimer;
 
 	// Accumulate EnumWindows results
 	private List<WindowListItem> _enumBuffer = new();
@@ -486,56 +490,76 @@ public sealed partial class MainWindow : Window
 		StartFindWindow();
 	}
 
-	private void StartFindWindow()
+	private unsafe void StartFindWindow()
 	{
 		_isFindingWindow = true;
 		btnFindWindow.Content = "Release to select";
-		btnFindWindow.PointerPressed += FindWindow_PointerPressed;
-		RootGrid.PointerMoved += FindWindow_PointerMoved;
-		RootGrid.PointerReleased += FindWindow_PointerReleased;
+
+		// Capture mouse globally for this window so pointer events keep firing
+		// even when the cursor leaves the app.
+		PInvoke.SetCapture(GetMyHwnd());
+
+		// Load a size-all cursor for the drag operation.
+		if (_dragCursor == null || (nint)_dragCursor.Value.Value == 0)
+		{
+			_dragCursor = PInvoke.LoadCursor(default(HINSTANCE), new PCWSTR((char*)IDC_SIZEALL));
+		}
+		_previousCursor = PInvoke.SetCursor(_dragCursor ?? default);
+
+		// Poll cursor position so we can preview the target under the cursor.
+		_findWindowTimer = new DispatcherTimer();
+		_findWindowTimer.Interval = TimeSpan.FromMilliseconds(50);
+		_findWindowTimer.Tick += FindWindowTimer_Tick;
+		_findWindowTimer.Start();
+
+		btnFindWindow.PointerReleased += FindWindow_PointerReleased;
 	}
 
-	private void StopFindWindow()
+	private unsafe void StopFindWindow()
 	{
 		_isFindingWindow = false;
 		btnFindWindow.Content = "Find Window";
-		btnFindWindow.PointerPressed -= FindWindow_PointerPressed;
-		RootGrid.PointerMoved -= FindWindow_PointerMoved;
-		RootGrid.PointerReleased -= FindWindow_PointerReleased;
+
+		if (_findWindowTimer != null)
+		{
+			_findWindowTimer.Tick -= FindWindowTimer_Tick;
+			_findWindowTimer.Stop();
+			_findWindowTimer = null;
+		}
+
+		PInvoke.ReleaseCapture();
+		if (_previousCursor != null)
+		{
+			PInvoke.SetCursor(_previousCursor ?? default);
+			_previousCursor = null;
+		}
+
+		btnFindWindow.PointerReleased -= FindWindow_PointerReleased;
 		ToolTipService.SetToolTip(btnFindWindow, "Drag to select any window on screen");
 	}
 
-	private void FindWindow_PointerPressed(object sender, PointerRoutedEventArgs e)
-	{
-		if (!_isFindingWindow) return;
-
-		var pointer = e.GetCurrentPoint(btnFindWindow);
-		if (pointer.Properties.IsLeftButtonPressed)
-		{
-			RootGrid.CapturePointer(e.Pointer);
-		}
-	}
-
-	private unsafe void FindWindow_PointerMoved(object sender, PointerRoutedEventArgs e)
+	private unsafe void FindWindowTimer_Tick(object? sender, object? e)
 	{
 		if (!_isFindingWindow) return;
 
 		try
 		{
-			var hwnd = GetWindowFromCursor();
-			unsafe
+			// Keep the drag cursor active because WinUI may reset it.
+			if (_dragCursor != null)
 			{
-				if ((nint)hwnd.Value != 0)
-				{
-					var rootHwnd = PInvoke.GetAncestor(hwnd, GET_ANCESTOR_FLAGS.GA_ROOT);
-					if ((nint)rootHwnd.Value != 0)
-						hwnd = rootHwnd;
-				}
+				PInvoke.SetCursor(_dragCursor ?? default);
+			}
+
+			var hwnd = GetWindowFromCursor();
+			if ((nint)hwnd.Value != 0)
+			{
+				var rootHwnd = PInvoke.GetAncestor(hwnd, GET_ANCESTOR_FLAGS.GA_ROOT);
+				if ((nint)rootHwnd.Value != 0)
+					hwnd = rootHwnd;
 			}
 
 			if ((nint)hwnd.Value != 0 && PInvoke.IsWindow(hwnd) && !IsWindowOwnedByProcess(hwnd, _myProcessId))
 			{
-				// Update button tooltip with current target while dragging
 				Span<char> textBuffer = stackalloc char[256];
 				int len = PInvoke.GetWindowText(hwnd, textBuffer);
 				string title = len > 0 ? textBuffer.Slice(0, len).ToString() : "(no title)";
@@ -553,8 +577,6 @@ public sealed partial class MainWindow : Window
 	{
 		if (!_isFindingWindow) return;
 
-		RootGrid.ReleasePointerCapture(e.Pointer);
-
 		try
 		{
 			var hwnd = GetWindowFromCursor();
@@ -562,7 +584,6 @@ public sealed partial class MainWindow : Window
 			{
 				if ((nint)hwnd.Value != 0)
 				{
-					// Get root window
 					var rootHwnd = PInvoke.GetAncestor(hwnd, GET_ANCESTOR_FLAGS.GA_ROOT);
 					if ((nint)rootHwnd.Value != 0)
 						hwnd = rootHwnd;
