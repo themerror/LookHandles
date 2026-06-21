@@ -28,7 +28,7 @@ public sealed partial class MainWindow : Window
 	private static readonly HWND HWND_NOTOPMOST_VALUE = new HWND(new IntPtr(-2));
 
 	private const uint WM_CLOSE = 0x0010;
-	private const uint IDC_SIZEALL = 32646;
+	private const uint OCR_HAND = 32649;
 
 	private ObservableCollection<WindowListItem> _windowList = new();
 	private WindowInfo? _currentWindow;
@@ -43,7 +43,6 @@ public sealed partial class MainWindow : Window
 	private uint _myProcessId;
 	private HCURSOR? _dragCursor;
 	private HCURSOR? _previousCursor;
-	private DispatcherTimer? _findWindowTimer;
 
 	// Accumulate EnumWindows results
 	private List<WindowListItem> _enumBuffer = new();
@@ -533,18 +532,12 @@ public sealed partial class MainWindow : Window
 		// even when the cursor leaves the app.
 		PInvoke.SetCapture(GetMyHwnd());
 
-		// Load a size-all cursor for the drag operation.
+		// Load the system hand cursor for the drag operation.
 		if (_dragCursor == null || (nint)_dragCursor.Value.Value == 0)
 		{
-			_dragCursor = PInvoke.LoadCursor(default(HINSTANCE), new PCWSTR((char*)IDC_SIZEALL));
+			_dragCursor = PInvoke.LoadCursor(default(HINSTANCE), new PCWSTR((char*)OCR_HAND));
 		}
 		_previousCursor = PInvoke.SetCursor(_dragCursor ?? default);
-
-		// Poll cursor position so we can preview the target under the cursor.
-		_findWindowTimer = new DispatcherTimer();
-		_findWindowTimer.Interval = TimeSpan.FromMilliseconds(50);
-		_findWindowTimer.Tick += FindWindowTimer_Tick;
-		_findWindowTimer.Start();
 
 		btnFindWindow.PointerReleased += FindWindow_PointerReleased;
 	}
@@ -553,13 +546,6 @@ public sealed partial class MainWindow : Window
 	{
 		_isFindingWindow = false;
 		btnFindWindow.Content = "Find Window";
-
-		if (_findWindowTimer != null)
-		{
-			_findWindowTimer.Tick -= FindWindowTimer_Tick;
-			_findWindowTimer.Stop();
-			_findWindowTimer = null;
-		}
 
 		PInvoke.ReleaseCapture();
 		if (_previousCursor != null)
@@ -570,41 +556,6 @@ public sealed partial class MainWindow : Window
 
 		btnFindWindow.PointerReleased -= FindWindow_PointerReleased;
 		ToolTipService.SetToolTip(btnFindWindow, "Drag to select any window on screen");
-	}
-
-	private unsafe void FindWindowTimer_Tick(object? sender, object? e)
-	{
-		if (!_isFindingWindow) return;
-
-		try
-		{
-			// Keep the drag cursor active because WinUI may reset it.
-			if (_dragCursor != null)
-			{
-				PInvoke.SetCursor(_dragCursor ?? default);
-			}
-
-			var hwnd = GetWindowFromCursor();
-			if ((nint)hwnd.Value != 0)
-			{
-				var rootHwnd = PInvoke.GetAncestor(hwnd, GET_ANCESTOR_FLAGS.GA_ROOT);
-				if ((nint)rootHwnd.Value != 0)
-					hwnd = rootHwnd;
-			}
-
-			if ((nint)hwnd.Value != 0 && PInvoke.IsWindow(hwnd) && !IsWindowOwnedByProcess(hwnd, _myProcessId))
-			{
-				Span<char> textBuffer = stackalloc char[256];
-				int len = PInvoke.GetWindowText(hwnd, textBuffer);
-				string title = len > 0 ? textBuffer.Slice(0, len).ToString() : "(no title)";
-				ToolTipService.SetToolTip(btnFindWindow, $"Target: {title} ({(nint)hwnd.Value:X8})");
-			}
-			else
-			{
-				ToolTipService.SetToolTip(btnFindWindow, "Release to select window");
-			}
-		}
-		catch { }
 	}
 
 	private void FindWindow_PointerReleased(object sender, PointerRoutedEventArgs e)
