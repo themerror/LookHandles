@@ -38,11 +38,8 @@ public sealed partial class MainWindow : Window
 	private bool _enableDisabledButtons = false;
 	private Timer? _autoModeTimer;
 	private bool _isFindingWindow = false;
-	private bool _findWindowJustCompleted = false;
 	private bool _isSpying = false;
 	private uint _myProcessId;
-	private HCURSOR? _dragCursor;
-	private HCURSOR? _previousCursor;
 
 	// Accumulate EnumWindows results
 	private List<WindowListItem> _enumBuffer = new();
@@ -503,16 +500,10 @@ public sealed partial class MainWindow : Window
 		}
 	}
 
-	// ========== Find Window (Drag crosshair) ==========
+	// ========== Find Window (Click then select next clicked window) ==========
 
 	private void btnFindWindow_Click(object sender, RoutedEventArgs e)
 	{
-		if (_findWindowJustCompleted)
-		{
-			_findWindowJustCompleted = false;
-			return;
-		}
-
 		if (_isFindingWindow)
 		{
 			StopFindWindow();
@@ -526,20 +517,13 @@ public sealed partial class MainWindow : Window
 	private unsafe void StartFindWindow()
 	{
 		_isFindingWindow = true;
-		btnFindWindow.Content = "Release to select";
+		btnFindWindow.Content = "Click a window";
 
-		// Capture mouse globally for this window so pointer events keep firing
-		// even when the cursor leaves the app.
+		// Capture mouse globally for this window so the next click is received
+		// even if it is outside the LookHandles window.
 		PInvoke.SetCapture(GetMyHwnd());
 
-		// Load the system hand cursor for the drag operation.
-		if (_dragCursor == null || (nint)_dragCursor.Value.Value == 0)
-		{
-			_dragCursor = PInvoke.LoadCursor(default(HINSTANCE), new PCWSTR((char*)OCR_HAND));
-		}
-		_previousCursor = PInvoke.SetCursor(_dragCursor ?? default);
-
-		btnFindWindow.PointerReleased += FindWindow_PointerReleased;
+		btnFindWindow.PointerPressed += FindWindow_PointerPressed;
 	}
 
 	private unsafe void StopFindWindow()
@@ -548,19 +532,18 @@ public sealed partial class MainWindow : Window
 		btnFindWindow.Content = "Find Window";
 
 		PInvoke.ReleaseCapture();
-		if (_previousCursor != null)
-		{
-			PInvoke.SetCursor(_previousCursor ?? default);
-			_previousCursor = null;
-		}
 
-		btnFindWindow.PointerReleased -= FindWindow_PointerReleased;
-		ToolTipService.SetToolTip(btnFindWindow, "Drag to select any window on screen");
+		btnFindWindow.PointerPressed -= FindWindow_PointerPressed;
+		ToolTipService.SetToolTip(btnFindWindow, "Click to select the next clicked window");
 	}
 
-	private void FindWindow_PointerReleased(object sender, PointerRoutedEventArgs e)
+	private void FindWindow_PointerPressed(object sender, PointerRoutedEventArgs e)
 	{
 		if (!_isFindingWindow) return;
+
+		var pointer = e.GetCurrentPoint(btnFindWindow);
+		if (!pointer.Properties.IsLeftButtonPressed)
+			return;
 
 		try
 		{
@@ -592,9 +575,7 @@ public sealed partial class MainWindow : Window
 		catch { }
 		finally
 		{
-			_findWindowJustCompleted = true;
 			StopFindWindow();
-			ToolTipService.SetToolTip(btnFindWindow, "Drag to select any window on screen");
 		}
 	}
 

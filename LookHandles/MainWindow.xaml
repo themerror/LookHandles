@@ -312,7 +312,7 @@
 			<CheckBox Grid.Column="2" x:Name="chkShowHidden" Content="Show Hidden" Margin="12,0,0,0" Checked="chkShowHidden_Checked" Unchecked="chkShowHidden_Unchecked" />
 			<CheckBox Grid.Column="3" x:Name="chkEnableDisabled" Content="Enable Grayed" Margin="12,0,0,0" Checked="chkEnableDisabled_Checked" Unchecked="chkEnableDisabled_Unchecked" />
 
-			<Button Grid.Column="5" x:Name="btnFindWindow" Content="Find Window" Click="btnFindWindow_Click" Margin="8,0,0,0" ToolTipService.ToolTip="Drag to select any window on screen" />
+			<Button Grid.Column="5" x:Name="btnFindWindow" Content="Find Window" Click="btnFindWindow_Click" Margin="8,0,0,0" ToolTipService.ToolTip="Click, then click any window to select it" />
 			<Button Grid.Column="6" x:Name="btnSpy" Content="Follow Foreground" Click="btnSpy_Click" Margin="8,0,0,0" ToolTipService.ToolTip="Automatically select the active foreground window" />
 		</Grid>
 	</Grid>
