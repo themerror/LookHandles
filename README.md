@@ -38,7 +38,7 @@ A WinUI 3 + Windows App SDK (WASDK) implementation of the LookHandles window spy
 - **Spy Mode**: Track the foreground window as it changes
 - **Show Hidden**: Include invisible windows in the window list
 - **Enable Grayed**: Experimental feature for enabling disabled controls
-- **Find Window**: Drag the mouse to select any window on screen(Still has some bug.)
+- **Find Window**: Click the button, then click any window on screen to select it
 - **Always on Top**: Keep LookHandles on top of other windows
 
 ## Technical Stack
@@ -46,6 +46,7 @@ A WinUI 3 + Windows App SDK (WASDK) implementation of the LookHandles window spy
 - **WinUI 3**: Modern Windows UI framework
 - **Windows App SDK**: Provides WinRT API access
 - **CsWin32**: Source-generated P/Invoke bindings for Win32 APIs
+- **CommunityToolkit.Mvvm**: MVVM support (source-generated observables and commands)
 - **.NET 8**: Target framework
 - **C# 12**: Language version with nullable reference types
 
@@ -73,8 +74,16 @@ LookHandles/
 |   |-- app.manifest            # Application manifest (DPI awareness)
 |   |-- App.xaml / App.xaml.cs  # Application entry point
 |   |-- MainWindow.xaml         # Main UI layout (two-panel design)
-|   |-- MainWindow.xaml.cs      # Window logic, Win32 interop, all button handlers
-|   |-- WindowInfo.cs           # Window information data model (INotifyPropertyChanged)
+|   |-- MainWindow.xaml.cs      # View-only concerns (window setup, dialogs, FindWindow pointer bridge)
+|   |-- WindowInfo.cs           # Window information data model
+|   |-- Models/
+|   |   +-- WindowListItem.cs   # List display item for the window list
+|   |-- Services/
+|   |   |-- WindowEnumerationService.cs   # EnumWindows / filtering logic
+|   |   |-- WindowManipulationService.cs  # ShowWindow / SetWindowPos / EnableWindow / etc.
+|   |   +-- MouseCaptureService.cs        # Mouse position / WindowFromPoint capture
+|   |-- ViewModels/
+|   |   +-- MainViewModel.cs    # Main window state, observables, and relay commands
 |   +-- Assets/                 # App icons and logos
 ```
 
@@ -110,6 +119,17 @@ dotnet publish -c Release -r win-x64 --self-contained true
 ```
 
 ## Architecture Notes
+
+### MVVM Structure
+The project follows the Model-View-ViewModel pattern using **CommunityToolkit.Mvvm**:
+
+- **Models**: Plain data objects (`WindowListItem`)
+- **ViewModels**: `MainViewModel` owns all view state and user actions via `[ObservableProperty]` and `[RelayCommand]`
+- **Views**: `MainWindow.xaml` binds to `MainViewModel`; `MainWindow.xaml.cs` only handles view-only concerns such as window sizing, "Always on Top", the `Find Window` pointer bridge, and `ContentDialog` prompts
+- **Services**: Win32 interop is split into focused services:
+  - `WindowEnumerationService`: enumerates top-level windows and applies visibility filters
+  - `WindowManipulationService`: performs window operations (minimize, maximize, close, enable, set topmost, flash, kill process)
+  - `MouseCaptureService`: captures the cursor and resolves the window under it
 
 ### CsWin32 P/Invoke Generation
 The project uses **Microsoft.Windows.CsWin32** to generate type-safe P/Invoke bindings at compile time. The `NativeMethods.txt` file lists all required Win32 APIs.
