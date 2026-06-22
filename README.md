@@ -118,48 +118,6 @@ dotnet run --configuration Debug --runtime win-x64
 dotnet publish -c Release -r win-x64 --self-contained true
 ```
 
-## Architecture Notes
-
-### MVVM Structure
-The project follows the Model-View-ViewModel pattern using **CommunityToolkit.Mvvm**:
-
-- **Models**: Plain data objects (`WindowListItem`)
-- **ViewModels**: `MainViewModel` owns all view state and user actions via `[ObservableProperty]` and `[RelayCommand]`
-- **Views**: `MainWindow.xaml` binds to `MainViewModel`; `MainWindow.xaml.cs` only handles view-only concerns such as window sizing, "Always on Top", the `Find Window` pointer bridge, and `ContentDialog` prompts
-- **Services**: Win32 interop is split into focused services:
-  - `WindowEnumerationService`: enumerates top-level windows and applies visibility filters
-  - `WindowManipulationService`: performs window operations (minimize, maximize, close, enable, set topmost, flash, kill process)
-  - `MouseCaptureService`: captures the cursor and resolves the window under it
-
-### CsWin32 P/Invoke Generation
-The project uses **Microsoft.Windows.CsWin32** to generate type-safe P/Invoke bindings at compile time. The `NativeMethods.txt` file lists all required Win32 APIs.
-
-When you first build, CsWin32 generates a `PInvoke` class containing:
-- All listed Win32 functions as static methods
-- Strongly-typed handles (`HWND`, `HANDLE`, etc.)
-- Structs (`RECT`, `FLASHWINFO`, etc.)
-- Named constants and enums
-
-Example:
-```csharp
-// CsWin32 generates:
-bool valid = PInvoke.IsWindow(hwnd);
-int len = PInvoke.GetWindowText(hwnd, buffer);
-```
-
-### WinRT Interop for HWND
-To get the HWND of a WinUI 3 window for Win32 API calls:
-```csharp
-var hwnd = new HWND(WinRT.Interop.WindowNative.GetWindowHandle(this));
-```
-
-### Unsafe Code Usage
-The project uses `unsafe` blocks for:
-- `EnumWindows` callback (delegate method group conversion)
-- `SendMessage` with `WM_SETTEXT` (char* pointer)
-- `QueryFullProcessImageNameW` (char* output buffer)
-- `GetWindowThreadProcessId` (uint* for process ID output)
-
 ## Known Limitations
 
 1. **UWP/Store apps**: Some modern UWP apps run in protected containers; full info may not be accessible
