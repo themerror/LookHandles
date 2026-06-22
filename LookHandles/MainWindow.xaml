@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:LookHandles"
+    xmlns:vm="using:LookHandles.ViewModels"
     Title="LookHandles 3.0">
 
 	<Grid x:Name="RootGrid" Padding="12" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
@@ -45,16 +46,18 @@
 								<ColumnDefinition Width="*" />
 							</Grid.ColumnDefinitions>
 							<TextBlock Grid.Column="0" Text="Handle:" VerticalAlignment="Center" />
-							<TextBox Grid.Column="1" x:Name="txtWindowHandle" IsReadOnly="True" />
+							<TextBox Grid.Column="1" Text="{x:Bind ViewModel.CurrentWindow.WindowHandle, Mode=OneWay}" IsReadOnly="True" />
 						</Grid>
 
 						<Grid>
 							<Grid.ColumnDefinitions>
 								<ColumnDefinition Width="100" />
 								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="Auto" />
 							</Grid.ColumnDefinitions>
 							<TextBlock Grid.Column="0" Text="Title:" VerticalAlignment="Center" />
-							<TextBox Grid.Column="1" x:Name="txtWindowTitle" />
+							<TextBox Grid.Column="1" x:Name="txtWindowTitle" Text="{x:Bind ViewModel.CurrentWindow.WindowText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+							<Button Grid.Column="2" Content="Set Title" Command="{x:Bind ViewModel.SetTitleCommand, Mode=OneWay}" CommandParameter="{x:Bind txtWindowTitle.Text, Mode=OneWay}" Margin="6,0,0,0" />
 						</Grid>
 
 						<Grid>
@@ -63,7 +66,7 @@
 								<ColumnDefinition Width="*" />
 							</Grid.ColumnDefinitions>
 							<TextBlock Grid.Column="0" Text="Class:" VerticalAlignment="Center" />
-							<TextBox Grid.Column="1" x:Name="txtClassName" IsReadOnly="True" />
+							<TextBox Grid.Column="1" Text="{x:Bind ViewModel.CurrentWindow.ClassName, Mode=OneWay}" IsReadOnly="True" />
 						</Grid>
 
 						<Grid>
@@ -72,7 +75,7 @@
 								<ColumnDefinition Width="*" />
 							</Grid.ColumnDefinitions>
 							<TextBlock Grid.Column="0" Text="Type:" VerticalAlignment="Center" />
-							<TextBox Grid.Column="1" x:Name="txtWindowType" IsReadOnly="True" TextWrapping="Wrap" />
+							<TextBox Grid.Column="1" Text="{x:Bind ViewModel.CurrentWindow.WindowType, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" />
 						</Grid>
 
 						<Grid>
@@ -81,7 +84,7 @@
 								<ColumnDefinition Width="*" />
 							</Grid.ColumnDefinitions>
 							<TextBlock Grid.Column="0" Text="Style:" VerticalAlignment="Center" />
-							<TextBox Grid.Column="1" x:Name="txtStyle" IsReadOnly="True" />
+							<TextBox Grid.Column="1" Text="{x:Bind ViewModel.CurrentWindow.Style, Mode=OneWay}" IsReadOnly="True" />
 						</Grid>
 
 						<Grid>
@@ -90,7 +93,7 @@
 								<ColumnDefinition Width="*" />
 							</Grid.ColumnDefinitions>
 							<TextBlock Grid.Column="0" Text="ExStyle:" VerticalAlignment="Center" />
-							<TextBox Grid.Column="1" x:Name="txtExStyle" IsReadOnly="True" />
+							<TextBox Grid.Column="1" Text="{x:Bind ViewModel.CurrentWindow.ExStyle, Mode=OneWay}" IsReadOnly="True" />
 						</Grid>
 
 						<Grid>
@@ -99,7 +102,7 @@
 								<ColumnDefinition Width="*" />
 							</Grid.ColumnDefinitions>
 							<TextBlock Grid.Column="0" Text="Window ID:" VerticalAlignment="Center" />
-							<TextBox Grid.Column="1" x:Name="txtWindowId" IsReadOnly="True" />
+							<TextBox Grid.Column="1" Text="{x:Bind ViewModel.CurrentWindow.WindowId, Mode=OneWay}" IsReadOnly="True" />
 						</Grid>
 
 						<Grid>
@@ -108,7 +111,7 @@
 								<ColumnDefinition Width="*" />
 							</Grid.ColumnDefinitions>
 							<TextBlock Grid.Column="0" Text="Parent:" VerticalAlignment="Center" />
-							<TextBox Grid.Column="1" x:Name="txtParentHandle" IsReadOnly="True" />
+							<TextBox Grid.Column="1" Text="{x:Bind ViewModel.CurrentWindow.ParentWindowHandle, Mode=OneWay}" IsReadOnly="True" />
 						</Grid>
 
 						<Grid>
@@ -117,7 +120,7 @@
 								<ColumnDefinition Width="*" />
 							</Grid.ColumnDefinitions>
 							<TextBlock Grid.Column="0" Text="Prt Class:" VerticalAlignment="Center" />
-							<TextBox Grid.Column="1" x:Name="txtParentClass" IsReadOnly="True" />
+							<TextBox Grid.Column="1" Text="{x:Bind ViewModel.CurrentWindow.ParentClassName, Mode=OneWay}" IsReadOnly="True" />
 						</Grid>
 
 						<Grid>
@@ -126,7 +129,7 @@
 								<ColumnDefinition Width="*" />
 							</Grid.ColumnDefinitions>
 							<TextBlock Grid.Column="0" Text="Prt Title:" VerticalAlignment="Center" />
-							<TextBox Grid.Column="1" x:Name="txtParentTitle" IsReadOnly="True" />
+							<TextBox Grid.Column="1" Text="{x:Bind ViewModel.CurrentWindow.ParentWindowText, Mode=OneWay}" IsReadOnly="True" />
 						</Grid>
 
 						<Grid>
@@ -141,13 +144,13 @@
 								<ColumnDefinition Width="*" />
 							</Grid.ColumnDefinitions>
 							<TextBlock Grid.Column="0" Text="Left:" VerticalAlignment="Center" />
-							<TextBox Grid.Column="1" x:Name="txtLeft" IsReadOnly="True" />
+							<TextBox Grid.Column="1" Text="{x:Bind ViewModel.CurrentWindow.Left, Mode=OneWay}" IsReadOnly="True" />
 							<TextBlock Grid.Column="2" Text="Top:" VerticalAlignment="Center" Margin="4,0,0,0" />
-							<TextBox Grid.Column="3" x:Name="txtTop" IsReadOnly="True" />
+							<TextBox Grid.Column="3" Text="{x:Bind ViewModel.CurrentWindow.Top, Mode=OneWay}" IsReadOnly="True" />
 							<TextBlock Grid.Column="4" Text="Rgt:" VerticalAlignment="Center" Margin="4,0,0,0" />
-							<TextBox Grid.Column="5" x:Name="txtRight" IsReadOnly="True" />
+							<TextBox Grid.Column="5" Text="{x:Bind ViewModel.CurrentWindow.Right, Mode=OneWay}" IsReadOnly="True" />
 							<TextBlock Grid.Column="6" Text="Btm:" VerticalAlignment="Center" Margin="4,0,0,0" />
-							<TextBox Grid.Column="7" x:Name="txtBottom" IsReadOnly="True" />
+							<TextBox Grid.Column="7" Text="{x:Bind ViewModel.CurrentWindow.Bottom, Mode=OneWay}" IsReadOnly="True" />
 						</Grid>
 
 						<Grid>
@@ -158,9 +161,9 @@
 								<ColumnDefinition Width="*" />
 							</Grid.ColumnDefinitions>
 							<TextBlock Grid.Column="0" Text="Width:" VerticalAlignment="Center" />
-							<TextBox Grid.Column="1" x:Name="txtWidth" IsReadOnly="True" />
+							<TextBox Grid.Column="1" Text="{x:Bind ViewModel.CurrentWindow.Width, Mode=OneWay}" IsReadOnly="True" />
 							<TextBlock Grid.Column="2" Text="Height:" VerticalAlignment="Center" />
-							<TextBox Grid.Column="3" x:Name="txtHeight" IsReadOnly="True" />
+							<TextBox Grid.Column="3" Text="{x:Bind ViewModel.CurrentWindow.Height, Mode=OneWay}" IsReadOnly="True" />
 						</Grid>
 					</StackPanel>
 				</ScrollViewer>
@@ -187,9 +190,9 @@
 							<ColumnDefinition Width="*" />
 						</Grid.ColumnDefinitions>
 						<TextBlock Grid.Column="0" Text="Thread ID:" VerticalAlignment="Center" />
-						<TextBox Grid.Column="1" x:Name="txtThreadId" IsReadOnly="True" />
+						<TextBox Grid.Column="1" Text="{x:Bind ViewModel.CurrentWindow.ThreadId, Mode=OneWay}" IsReadOnly="True" />
 						<TextBlock Grid.Column="2" Text="Process ID:" VerticalAlignment="Center" Margin="4,0,0,0" />
-						<TextBox Grid.Column="3" x:Name="txtProcessId" IsReadOnly="True" />
+						<TextBox Grid.Column="3" Text="{x:Bind ViewModel.CurrentWindow.ProcessId, Mode=OneWay}" IsReadOnly="True" />
 					</Grid>
 
 					<Grid>
@@ -198,7 +201,7 @@
 							<ColumnDefinition Width="*" />
 						</Grid.ColumnDefinitions>
 						<TextBlock Grid.Column="0" Text="Process:" VerticalAlignment="Center" />
-						<TextBox Grid.Column="1" x:Name="txtProcessName" IsReadOnly="True" />
+						<TextBox Grid.Column="1" Text="{x:Bind ViewModel.CurrentWindow.ProcessName, Mode=OneWay}" IsReadOnly="True" />
 					</Grid>
 
 					<Grid>
@@ -207,7 +210,7 @@
 							<ColumnDefinition Width="*" />
 						</Grid.ColumnDefinitions>
 						<TextBlock Grid.Column="0" Text="Path:" VerticalAlignment="Center" />
-						<TextBox Grid.Column="1" x:Name="txtProcessPath" IsReadOnly="True" TextWrapping="Wrap" />
+						<TextBox Grid.Column="1" Text="{x:Bind ViewModel.CurrentWindow.ProcessPath, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" />
 					</Grid>
 
 					<Grid>
@@ -216,7 +219,7 @@
 							<ColumnDefinition Width="*" />
 						</Grid.ColumnDefinitions>
 						<TextBlock Grid.Column="0" Text="Instance:" VerticalAlignment="Center" />
-						<TextBox Grid.Column="1" x:Name="txtInstanceHandle" IsReadOnly="True" />
+						<TextBox Grid.Column="1" Text="{x:Bind ViewModel.CurrentWindow.InstanceHandle, Mode=OneWay}" IsReadOnly="True" />
 					</Grid>
 
 					<Grid>
@@ -225,7 +228,7 @@
 							<ColumnDefinition Width="*" />
 						</Grid.ColumnDefinitions>
 						<TextBlock Grid.Column="0" Text="Module:" VerticalAlignment="Center" />
-						<TextBox Grid.Column="1" x:Name="txtModuleName" IsReadOnly="True" />
+						<TextBox Grid.Column="1" Text="{x:Bind ViewModel.CurrentWindow.ModuleName, Mode=OneWay}" IsReadOnly="True" />
 					</Grid>
 
 					<Grid>
@@ -234,7 +237,7 @@
 							<ColumnDefinition Width="*" />
 						</Grid.ColumnDefinitions>
 						<TextBlock Grid.Column="0" Text="Mod Path:" VerticalAlignment="Center" />
-						<TextBox Grid.Column="1" x:Name="txtModulePath" IsReadOnly="True" TextWrapping="Wrap" />
+						<TextBox Grid.Column="1" Text="{x:Bind ViewModel.CurrentWindow.ModulePath, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" />
 					</Grid>
 				</StackPanel>
 
@@ -244,27 +247,25 @@
 						<RowDefinition Height="Auto" />
 						<RowDefinition Height="*" />
 					</Grid.RowDefinitions>
-					<TextBlock Grid.Row="0" Text="Window List" FontWeight="SemiBold" Margin="0,0,0,4" />
+					<Grid Grid.Row="0" Margin="0,0,0,4">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="Auto" />
+						</Grid.ColumnDefinitions>
+						<TextBlock Text="Window List" FontWeight="SemiBold" VerticalAlignment="Center" />
+						<Button Grid.Column="1" Command="{x:Bind ViewModel.RefreshWindowsCommand, Mode=OneWay}" ToolTipService.ToolTip="Refresh window list" Padding="6,2">
+							<SymbolIcon Symbol="Refresh" />
+						</Button>
+					</Grid>
 					<ListView Grid.Row="1"
                               x:Name="lvWindows"
-                              SelectionChanged="lvWindows_SelectionChanged"
+                              ItemsSource="{x:Bind ViewModel.WindowList, Mode=OneWay}"
+                              SelectedItem="{x:Bind ViewModel.SelectedWindowItem, Mode=TwoWay}"
                               BorderBrush="{ThemeResource SystemControlForegroundBaseMediumLowBrush}"
                               BorderThickness="1" />
 				</Grid>
 
-				<!-- Action Buttons -->
 				<Grid Grid.Row="3" Margin="0,8,0,0">
-					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="*" />
-						<ColumnDefinition Width="*" />
-					</Grid.ColumnDefinitions>
-					<StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6">
-						<Button x:Name="btnSetTitle" Content="Set Title" Click="btnSetTitle_Click" />
-						<Button x:Name="btnRefresh" Content="Refresh" Click="btnRefresh_Click" />
-					</StackPanel>
-				</Grid>
-
-				<Grid Grid.Row="4" Margin="0,8,0,0">
 					<Grid.RowDefinitions>
 						<RowDefinition Height="Auto" />
 						<RowDefinition Height="Auto" />
@@ -277,21 +278,21 @@
 						<ColumnDefinition Width="*" />
 					</Grid.ColumnDefinitions>
 
-					<Button Grid.Row="0" Grid.Column="0" x:Name="btnMinimize" Content="Minimize" Click="btnMinimize_Click" Margin="2" />
-					<Button Grid.Row="0" Grid.Column="1" x:Name="btnMaximize" Content="Maximize" Click="btnMaximize_Click" Margin="2" />
-					<Button Grid.Row="0" Grid.Column="2" x:Name="btnNormal" Content="Normal" Click="btnNormal_Click" Margin="2" />
+					<Button Grid.Row="0" Grid.Column="0" Content="Minimize" Command="{x:Bind ViewModel.MinimizeCommand, Mode=OneWay}" Margin="2" />
+					<Button Grid.Row="0" Grid.Column="1" Content="Maximize" Command="{x:Bind ViewModel.MaximizeCommand, Mode=OneWay}" Margin="2" />
+					<Button Grid.Row="0" Grid.Column="2" Content="Normal" Command="{x:Bind ViewModel.RestoreCommand, Mode=OneWay}" Margin="2" />
 
-					<Button Grid.Row="1" Grid.Column="0" x:Name="btnShow" Content="Show" Click="btnShow_Click" Margin="2" />
-					<Button Grid.Row="1" Grid.Column="1" x:Name="btnHide" Content="Hide" Click="btnHide_Click" Margin="2" />
-					<Button Grid.Row="1" Grid.Column="2" x:Name="btnFlash" Content="Flash" Click="btnFlash_Click" Margin="2" />
+					<Button Grid.Row="1" Grid.Column="0" Content="Show" Command="{x:Bind ViewModel.ShowCommand, Mode=OneWay}" Margin="2" />
+					<Button Grid.Row="1" Grid.Column="1" Content="Hide" Command="{x:Bind ViewModel.HideCommand, Mode=OneWay}" Margin="2" />
+					<Button Grid.Row="1" Grid.Column="2" Content="Flash" Command="{x:Bind ViewModel.FlashCommand, Mode=OneWay}" Margin="2" />
 
-					<Button Grid.Row="2" Grid.Column="0" x:Name="btnTopmost" Content="Topmost" Click="btnTopmost_Click" Margin="2" />
-					<Button Grid.Row="2" Grid.Column="1" x:Name="btnNoTopmost" Content="No Topmost" Click="btnNoTopmost_Click" Margin="2" />
-					<Button Grid.Row="2" Grid.Column="2" x:Name="btnClose" Content="Close" Click="btnClose_Click" Margin="2" />
+					<Button Grid.Row="2" Grid.Column="0" Content="Topmost" Command="{x:Bind ViewModel.SetTopmostCommand, Mode=OneWay}" Margin="2" />
+					<Button Grid.Row="2" Grid.Column="1" Content="No Topmost" Command="{x:Bind ViewModel.ClearTopmostCommand, Mode=OneWay}" Margin="2" />
+					<Button Grid.Row="2" Grid.Column="2" Content="Close" Command="{x:Bind ViewModel.CloseCommand, Mode=OneWay}" Margin="2" />
 
-					<Button Grid.Row="3" Grid.Column="0" x:Name="btnEnable" Content="Enable" Click="btnEnable_Click" Margin="2" />
-					<Button Grid.Row="3" Grid.Column="1" x:Name="btnDisable" Content="Disable" Click="btnDisable_Click" Margin="2" />
-					<Button Grid.Row="3" Grid.Column="2" x:Name="btnKillProcess" Content="Kill Process" Click="btnKillProcess_Click" Margin="2" />
+					<Button Grid.Row="3" Grid.Column="0" Content="Enable" Command="{x:Bind ViewModel.EnableCommand, Mode=OneWay}" Margin="2" />
+					<Button Grid.Row="3" Grid.Column="1" Content="Disable" Command="{x:Bind ViewModel.DisableCommand, Mode=OneWay}" Margin="2" />
+					<Button Grid.Row="3" Grid.Column="2" Content="Kill Process" Command="{x:Bind ViewModel.KillProcessCommand, Mode=OneWay}" Margin="2" />
 				</Grid>
 			</Grid>
 		</Grid>
@@ -309,12 +310,12 @@
 			</Grid.ColumnDefinitions>
 
 			<CheckBox Grid.Column="0" x:Name="chkTopmost" Content="Always on Top" Checked="chkTopmost_Checked" Unchecked="chkTopmost_Unchecked" />
-			<CheckBox Grid.Column="1" x:Name="chkAutoMode" Content="Auto Mode" Margin="12,0,0,0" Checked="chkAutoMode_Checked" Unchecked="chkAutoMode_Unchecked" />
-			<CheckBox Grid.Column="2" x:Name="chkShowHidden" Content="Show Hidden" Margin="12,0,0,0" Checked="chkShowHidden_Checked" Unchecked="chkShowHidden_Unchecked" />
-			<CheckBox Grid.Column="3" x:Name="chkEnableDisabled" Content="Enable Grayed" Margin="12,0,0,0" Checked="chkEnableDisabled_Checked" Unchecked="chkEnableDisabled_Unchecked" />
+			<CheckBox Grid.Column="1" Content="Auto Mode" Margin="12,0,0,0" IsChecked="{x:Bind ViewModel.IsAutoMode, Mode=TwoWay}" />
+			<CheckBox Grid.Column="2" Content="Show Hidden" Margin="12,0,0,0" IsChecked="{x:Bind ViewModel.ShowHiddenWindows, Mode=TwoWay}" />
+			<CheckBox Grid.Column="3" Content="Enable Grayed" Margin="12,0,0,0" IsChecked="{x:Bind ViewModel.EnableGrayed, Mode=TwoWay}" />
 
-			<Button Grid.Column="5" x:Name="btnFindWindow" Content="Find Window" Click="btnFindWindow_Click" Margin="8,0,0,0" />
-			<Button Grid.Column="6" x:Name="btnSpy" Content="Spy" Click="btnSpy_Click" Margin="8,0,0,0" />
+			<Button Grid.Column="5" x:Name="btnFindWindow" Content="{x:Bind ViewModel.FindWindowButtonText, Mode=OneWay}" Click="btnFindWindow_Click" Margin="8,0,0,0" ToolTipService.ToolTip="Click, then click any window to select it" />
+			<Button Grid.Column="6" Content="{x:Bind ViewModel.FollowForegroundButtonText, Mode=OneWay}" Click="btnSpy_Click" Margin="8,0,0,0" ToolTipService.ToolTip="Automatically select the active foreground window" />
 		</Grid>
 	</Grid>
 </Window>

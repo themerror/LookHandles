@@ -38,7 +38,7 @@ A WinUI 3 + Windows App SDK (WASDK) implementation of the LookHandles window spy
 - **Spy Mode**: Track the foreground window as it changes
 - **Show Hidden**: Include invisible windows in the window list
 - **Enable Grayed**: Experimental feature for enabling disabled controls
-- **Find Window**: Drag the mouse to select any window on screen(Still has some bug.)
+- **Find Window**: Click the button, then click any window on screen to select it
 - **Always on Top**: Keep LookHandles on top of other windows
 
 ## Technical Stack
@@ -46,6 +46,7 @@ A WinUI 3 + Windows App SDK (WASDK) implementation of the LookHandles window spy
 - **WinUI 3**: Modern Windows UI framework
 - **Windows App SDK**: Provides WinRT API access
 - **CsWin32**: Source-generated P/Invoke bindings for Win32 APIs
+- **CommunityToolkit.Mvvm**: MVVM support (source-generated observables and commands)
 - **.NET 8**: Target framework
 - **C# 12**: Language version with nullable reference types
 
@@ -73,8 +74,16 @@ LookHandles/
 |   |-- app.manifest            # Application manifest (DPI awareness)
 |   |-- App.xaml / App.xaml.cs  # Application entry point
 |   |-- MainWindow.xaml         # Main UI layout (two-panel design)
-|   |-- MainWindow.xaml.cs      # Window logic, Win32 interop, all button handlers
-|   |-- WindowInfo.cs           # Window information data model (INotifyPropertyChanged)
+|   |-- MainWindow.xaml.cs      # View-only concerns (window setup, dialogs, FindWindow pointer bridge)
+|   |-- WindowInfo.cs           # Window information data model
+|   |-- Models/
+|   |   +-- WindowListItem.cs   # List display item for the window list
+|   |-- Services/
+|   |   |-- WindowEnumerationService.cs   # EnumWindows / filtering logic
+|   |   |-- WindowManipulationService.cs  # ShowWindow / SetWindowPos / EnableWindow / etc.
+|   |   +-- MouseCaptureService.cs        # Mouse position / WindowFromPoint capture
+|   |-- ViewModels/
+|   |   +-- MainViewModel.cs    # Main window state, observables, and relay commands
 |   +-- Assets/                 # App icons and logos
 ```
 
@@ -108,37 +117,6 @@ dotnet run --configuration Debug --runtime win-x64
 ```bash
 dotnet publish -c Release -r win-x64 --self-contained true
 ```
-
-## Architecture Notes
-
-### CsWin32 P/Invoke Generation
-The project uses **Microsoft.Windows.CsWin32** to generate type-safe P/Invoke bindings at compile time. The `NativeMethods.txt` file lists all required Win32 APIs.
-
-When you first build, CsWin32 generates a `PInvoke` class containing:
-- All listed Win32 functions as static methods
-- Strongly-typed handles (`HWND`, `HANDLE`, etc.)
-- Structs (`RECT`, `FLASHWINFO`, etc.)
-- Named constants and enums
-
-Example:
-```csharp
-// CsWin32 generates:
-bool valid = PInvoke.IsWindow(hwnd);
-int len = PInvoke.GetWindowText(hwnd, buffer);
-```
-
-### WinRT Interop for HWND
-To get the HWND of a WinUI 3 window for Win32 API calls:
-```csharp
-var hwnd = new HWND(WinRT.Interop.WindowNative.GetWindowHandle(this));
-```
-
-### Unsafe Code Usage
-The project uses `unsafe` blocks for:
-- `EnumWindows` callback (delegate method group conversion)
-- `SendMessage` with `WM_SETTEXT` (char* pointer)
-- `QueryFullProcessImageNameW` (char* output buffer)
-- `GetWindowThreadProcessId` (uint* for process ID output)
 
 ## Known Limitations
 

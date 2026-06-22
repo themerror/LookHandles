@@ -11,6 +11,10 @@ ShowWindow
 SetWindowPos
 WindowFromPoint
 GetCursorPos
+SetCapture
+ReleaseCapture
+SetCursor
+LoadCursorW
 GetWindowRect
 GetClientRect
 GetParent
