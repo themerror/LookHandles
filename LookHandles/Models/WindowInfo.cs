@@ -12,6 +12,16 @@ using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace LookHandles;
 
+/// <summary>
+/// Represents a best-effort snapshot of a native window and its owning thread and process.
+/// </summary>
+/// <remarks>
+/// The native window handle is copied into this instance but remains owned by its caller. This object
+/// does not destroy the window or close handles owned by its caller. Text queries copy native data into
+/// temporary, caller-allocated buffers, and process handles opened during a refresh are closed by that scope.
+/// Unavailable values can remain empty or zero, or can contain a textual sentinel such as
+/// <c>[Access Denied]</c> or <c>[Unknown]</c>, depending on the query that failed.
+/// </remarks>
 public class WindowInfo : INotifyPropertyChanged
 {
 	private HWND _hwnd;
@@ -37,81 +47,210 @@ public class WindowInfo : INotifyPropertyChanged
 	private string _moduleName = string.Empty;
 	private string _modulePath = string.Empty;
 
+	/// <summary>
+	/// Gets the native window handle from which this snapshot was populated.
+	/// </summary>
+	/// <remarks>The handle is a borrowed value. Its validity and lifetime are managed by the caller.</remarks>
 	internal HWND HWnd => _hwnd;
 
+	/// <summary>
+	/// Gets the native window handle as a display string.
+	/// </summary>
+	/// <value>
+	/// A <c>0x</c>-prefixed uppercase hexadecimal value, zero-padded to at least eight digits. On a
+	/// 64-bit process, wider handle values retain all of their digits.
+	/// </value>
 	public unsafe string WindowHandle => $"0x{(nint)_hwnd.Value:X8}";
 
+	/// <summary>
+	/// Gets or sets the window's title text.
+	/// </summary>
+	/// <value>
+	/// The captured title, an empty string when no title is available, or <c>[Access Denied]</c> when
+	/// the title query fails inside its refresh error handler.
+	/// </value>
 	public string WindowText
 	{
 		get => _windowText;
 		set { _windowText = value; OnPropertyChanged(nameof(WindowText)); }
 	}
 
+	/// <summary>
+	/// Gets or sets the native window class name.
+	/// </summary>
+	/// <value>
+	/// The captured class name, an empty string until one is captured, or <c>[Access Denied]</c> when
+	/// the class query fails inside its refresh error handler.
+	/// </value>
 	public string ClassName
 	{
 		get => _className;
 		set { _className = value; OnPropertyChanged(nameof(ClassName)); }
 	}
 
+	/// <summary>
+	/// Gets a human-readable decoding of selected standard and extended window style flags.
+	/// </summary>
+	/// <value>A space-separated list of style descriptions. It is not an exhaustive decoding of every flag.</value>
 	public string WindowType => GetWindowTypeDescription();
 
+	/// <summary>
+	/// Gets the standard window style bits as a display string.
+	/// </summary>
+	/// <value>
+	/// A <c>0x</c>-prefixed, eight-digit uppercase hexadecimal value. A refresh failure in the style
+	/// query resets the underlying value to zero, displayed as <c>0x00000000</c>.
+	/// </value>
 	public string Style => $"0x{_style:X8}";
 
+	/// <summary>
+	/// Gets the extended window style bits as a display string.
+	/// </summary>
+	/// <value>
+	/// A <c>0x</c>-prefixed, eight-digit uppercase hexadecimal value. A refresh failure in the style
+	/// query resets the underlying value to zero, displayed as <c>0x00000000</c>.
+	/// </value>
 	public string ExStyle => $"0x{_exStyle:X8}";
 
+	/// <summary>
+	/// Gets the window identifier obtained through <c>GWL_ID</c>.
+	/// </summary>
+	/// <value>The signed 32-bit identifier in decimal notation, or <c>0</c> when its underlying value is zero.</value>
 	public string WindowId => _windowId.ToString();
 
+	/// <summary>
+	/// Gets the parent window handle as a display string.
+	/// </summary>
+	/// <value>
+	/// A <c>0x</c>-prefixed uppercase hexadecimal value, zero-padded to at least eight digits. The
+	/// sentinel <c>0x00000000</c> indicates that no valid parent handle is stored.
+	/// </value>
 	public unsafe string ParentWindowHandle => (nint)_parentHwnd.Value != 0 ? $"0x{(nint)_parentHwnd.Value:X8}" : "0x00000000";
 
+	/// <summary>
+	/// Gets or sets the parent window's native class name.
+	/// </summary>
+	/// <value>
+	/// An empty string when there is no valid parent, the captured class name, or
+	/// <c>[Access Denied]</c> when the parent query fails inside its refresh error handler.
+	/// </value>
 	public string ParentClassName
 	{
 		get => _parentClassName;
 		set { _parentClassName = value; OnPropertyChanged(nameof(ParentClassName)); }
 	}
 
+	/// <summary>
+	/// Gets or sets the parent window's title text.
+	/// </summary>
+	/// <value>
+	/// An empty string when there is no valid parent or no parent title, the captured title, or
+	/// <c>[Access Denied]</c> when the parent query fails inside its refresh error handler.
+	/// </value>
 	public string ParentWindowText
 	{
 		get => _parentWindowText;
 		set { _parentWindowText = value; OnPropertyChanged(nameof(ParentWindowText)); }
 	}
 
+	/// <summary>Gets the left edge of the window rectangle in screen pixel coordinates.</summary>
 	public int Left => _left;
+
+	/// <summary>Gets the top edge of the window rectangle in screen pixel coordinates.</summary>
 	public int Top => _top;
+
+	/// <summary>Gets the right edge of the window rectangle in screen pixel coordinates.</summary>
 	public int Right => _right;
+
+	/// <summary>Gets the bottom edge of the window rectangle in screen pixel coordinates.</summary>
 	public int Bottom => _bottom;
+
+	/// <summary>Gets the window width in pixels, calculated as <see cref="Right"/> minus <see cref="Left"/>.</summary>
 	public int Width => _width;
+
+	/// <summary>Gets the window height in pixels, calculated as <see cref="Bottom"/> minus <see cref="Top"/>.</summary>
 	public int Height => _height;
 
+	/// <summary>
+	/// Gets the identifier of the thread that created the window.
+	/// </summary>
+	/// <value>The unsigned 32-bit identifier in decimal notation, or <c>0</c> when unavailable.</value>
 	public string ThreadId => _threadId.ToString();
 
+	/// <summary>
+	/// Gets the identifier of the process that owns the window.
+	/// </summary>
+	/// <value>The unsigned 32-bit identifier in decimal notation, or <c>0</c> when unavailable.</value>
 	public string ProcessId => _processId.ToString();
 
+	/// <summary>
+	/// Gets or sets the name of the process that owns the window.
+	/// </summary>
+	/// <value>
+	/// The captured process name, an empty string until one is captured, or <c>[Unknown]</c> when
+	/// the process details cannot be obtained.
+	/// </value>
 	public string ProcessName
 	{
 		get => _processName;
 		set { _processName = value; OnPropertyChanged(nameof(ProcessName)); }
 	}
 
+	/// <summary>
+	/// Gets or sets the full path to the owning process's main executable.
+	/// </summary>
+	/// <value>
+	/// The captured path, an empty string when no path is available, or <c>[Access Denied]</c> when
+	/// the main-module query fails inside its refresh error handler.
+	/// </value>
 	public string ProcessPath
 	{
 		get => _processPath;
 		set { _processPath = value; OnPropertyChanged(nameof(ProcessPath)); }
 	}
 
+	/// <summary>
+	/// Gets the window's instance handle obtained through <c>GWL_HINSTANCE</c>.
+	/// </summary>
+	/// <value>
+	/// A <c>0x</c>-prefixed uppercase hexadecimal value, zero-padded to at least eight digits. This is
+	/// a borrowed handle value; the snapshot does not own or release the referenced module.
+	/// </value>
 	public string InstanceHandle => $"0x{_instanceHandle:X8}";
 
+	/// <summary>
+	/// Gets or sets the file name portion of the module path returned by the process-image query.
+	/// </summary>
+	/// <value>
+	/// The captured module file name, an empty string until one is captured, or
+	/// <c>[Access Denied]</c> when the module query fails inside its refresh error handler.
+	/// </value>
 	public string ModuleName
 	{
 		get => _moduleName;
 		set { _moduleName = value; OnPropertyChanged(nameof(ModuleName)); }
 	}
 
+	/// <summary>
+	/// Gets or sets the full process-image path obtained by <c>QueryFullProcessImageNameW</c>.
+	/// </summary>
+	/// <value>
+	/// The captured module path, an empty string until one is captured, or <c>[Access Denied]</c>
+	/// when the module query fails inside its refresh error handler.
+	/// </value>
 	public string ModulePath
 	{
 		get => _modulePath;
 		set { _modulePath = value; OnPropertyChanged(nameof(ModulePath)); }
 	}
 
+	/// <summary>
+	/// Initializes a snapshot for the specified native window and performs an initial refresh.
+	/// </summary>
+	/// <param name="hwnd">
+	/// The borrowed native window handle to inspect. This instance stores the value but does not take
+	/// ownership of the window or its lifetime.
+	/// </param>
 	internal unsafe WindowInfo(HWND hwnd)
 	{
 		_hwnd = hwnd;
@@ -119,6 +258,26 @@ public class WindowInfo : INotifyPropertyChanged
 		Refresh();
 	}
 
+	/// <summary>
+	/// Requeries the native window and its owning thread and process to update this snapshot.
+	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// If the stored handle is not a valid window, this method returns immediately without clearing or
+	/// otherwise changing any previously captured values.
+	/// </para>
+	/// <para>
+	/// Refresh is best effort. Each information group is queried independently, so a failure in one group
+	/// does not prevent later groups from being attempted. Depending on the query, a failure can set an
+	/// empty, zero, or sentinel value, or can leave earlier values unchanged. In particular, an
+	/// unsuccessful rectangle query leaves the previous coordinates and dimensions intact.
+	/// </para>
+	/// <para>
+	/// Native text is copied into temporary buffers owned by this method. A process handle opened for the
+	/// module query is owned by that query scope and is closed in its <c>finally</c> block; no process
+	/// handle is retained by this snapshot.
+	/// </para>
+	/// </remarks>
 	public unsafe void Refresh()
 	{
 		if (!PInvoke.IsWindow(_hwnd))
@@ -297,9 +456,34 @@ public class WindowInfo : INotifyPropertyChanged
 		}
 	}
 
+	/// <summary>
+	/// Manually imports the Unicode <c>QueryFullProcessImageNameW</c> function for a caller-supplied buffer.
+	/// </summary>
+	/// <param name="hProcess">
+	/// A valid process handle with the access required by the native function. The caller retains ownership
+	/// of this handle and is responsible for closing it.
+	/// </param>
+	/// <param name="dwFlags">The native process-image name format flags.</param>
+	/// <param name="lpExeName">
+	/// A pointer to the caller-owned Unicode character buffer that receives the path. The native function
+	/// does not take ownership of this buffer.
+	/// </param>
+	/// <param name="lpdwSize">
+	/// On input, the buffer capacity in characters. On success, receives the path length in characters,
+	/// excluding the terminating null character.
+	/// </param>
+	/// <returns><see langword="true"/> when the native query succeeds; otherwise, <see langword="false"/>.</returns>
 	[DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
 	private static extern unsafe bool QueryFullProcessImageNameW(HANDLE hProcess, uint dwFlags, char* lpExeName, ref uint lpdwSize);
 
+	/// <summary>
+	/// Decodes selected standard and extended style bits into display labels.
+	/// </summary>
+	/// <returns>A trimmed, space-separated list of the labels selected by the current style values.</returns>
+	/// <remarks>
+	/// This is a display-oriented, non-exhaustive decoding. Because <c>WS_OVERLAPPED</c> has a value of zero,
+	/// its bit test always succeeds and the <c>Overlapped</c> label is always included by the current logic.
+	/// </remarks>
 	private string GetWindowTypeDescription()
 	{
 		var type = new StringBuilder();
@@ -341,13 +525,24 @@ public class WindowInfo : INotifyPropertyChanged
 		return type.ToString().Trim();
 	}
 
+	/// <inheritdoc/>
 	public event PropertyChangedEventHandler? PropertyChanged;
 
+	/// <summary>
+	/// Raises <see cref="PropertyChanged"/> for the specified property when subscribers are present.
+	/// </summary>
+	/// <param name="propertyName">The name of the property whose value may have changed.</param>
 	protected void OnPropertyChanged(string propertyName)
 	{
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
 
+	/// <inheritdoc/>
+	/// <returns>
+	/// A string in the form <c>[handle] display</c>, where the handle uses <see cref="WindowHandle"/>
+	/// formatting and the display text is <see cref="WindowText"/>, or <see cref="ClassName"/> when the
+	/// window text is null or empty.
+	/// </returns>
 	public override string ToString()
 	{
 		string display = string.IsNullOrEmpty(WindowText) ? ClassName : WindowText;
