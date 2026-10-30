@@ -10,17 +10,40 @@ using LookHandles.Models;
 
 namespace LookHandles.Services;
 
+/// <summary>
+/// Defines refresh operations for an observable collection of top-level window snapshots.
+/// </summary>
 public interface IWindowEnumerationService
 {
+	/// <summary>
+	/// Clears and repopulates a collection with filtered and sorted window snapshots.
+	/// </summary>
+	/// <param name="target">The collection to clear and repopulate with the sorted snapshots.</param>
+	/// <param name="includeHidden"><see langword="true"/> to include invisible windows; <see langword="false"/> to omit them.</param>
+	/// <param name="excludeHwnd">The native window handle to exclude, or 0 to disable HWND-based exclusion.</param>
+	/// <param name="excludeProcessId">The ID of the process whose windows should be excluded.</param>
+	/// <remarks>
+	/// The window identified by <paramref name="excludeHwnd"/> and windows owned by <paramref name="excludeProcessId"/> are omitted.
+	/// Results are ordered with visible windows first, then by process name, and finally by window title.
+	/// When the owning process name cannot be retrieved, <see cref="WindowListItem.ProcessName"/> is set to <c>Unknown</c>.
+	/// </remarks>
 	void RefreshWindows(ObservableCollection<WindowListItem> target, bool includeHidden, nint excludeHwnd, uint excludeProcessId);
 }
 
+/// <summary>
+/// Enumerates top-level windows and creates snapshots for display in a window list.
+/// </summary>
+/// <remarks>
+/// Enumeration settings and collected items are stored in instance fields during a refresh.
+/// Overlapping or nested refreshes on the same instance are not supported.
+/// </remarks>
 public class WindowEnumerationService : IWindowEnumerationService
 {
 	private List<WindowListItem> _enumBuffer = new();
 	private bool _includeHidden;
 	private uint _excludeProcessId;
 
+	/// <inheritdoc />
 	public unsafe void RefreshWindows(ObservableCollection<WindowListItem> target, bool includeHidden, nint excludeHwnd, uint excludeProcessId)
 	{
 		_includeHidden = includeHidden;
@@ -40,6 +63,17 @@ public class WindowEnumerationService : IWindowEnumerationService
 			target.Add(w);
 	}
 
+	/// <summary>
+	/// Collects a snapshot for an eligible window while allowing native enumeration to continue.
+	/// </summary>
+	/// <param name="hwnd">The top-level window supplied by the native enumerator.</param>
+	/// <param name="lParam">The native window handle to exclude, passed through from the refresh operation.</param>
+	/// <returns>Always <see langword="true"/>, including when the current window is filtered out or cannot be processed.</returns>
+	/// <remarks>
+	/// Hidden-window, HWND, and process exclusions skip only the current window.
+	/// A failure while processing one window is ignored so enumeration can proceed with subsequent windows.
+	/// The callback uses the current refresh's mutable instance state and is not reentrant on the same service instance.
+	/// </remarks>
 	private unsafe BOOL EnumWindowsCallback(HWND hwnd, LPARAM lParam)
 	{
 		try
