@@ -8,38 +8,36 @@
     Title="LookHandles 3.0">
 
 	<Grid x:Name="RootGrid" Padding="12" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-		<Grid.RowDefinitions>
-			<RowDefinition Height="Auto" />
-			<RowDefinition Height="*" />
-			<RowDefinition Height="Auto" />
-		</Grid.RowDefinitions>
+		<ScrollViewer x:Name="MainScrollViewer"
+					  AutomationProperties.AutomationId="MainScrollViewer"
+					  HorizontalScrollMode="Disabled"
+					  HorizontalScrollBarVisibility="Disabled"
+					  VerticalScrollMode="Enabled"
+					  VerticalScrollBarVisibility="Auto">
+			<StackPanel x:Name="MainContentPanel">
+				<!-- Title -->
+				<TextBlock Text="LookHandles 3.0 - Window Spy Tool"
+						   FontSize="18"
+						   FontWeight="Bold"
+						   Margin="0,0,0,12" />
 
-		<!-- Title -->
-		<TextBlock Grid.Row="0"
-                   Text="LookHandles 3.0 - Window Spy Tool"
-                   FontSize="18"
-                   FontWeight="Bold"
-                   Margin="0,0,0,12" />
+				<!-- Main Content -->
+				<Grid x:Name="ContentGrid">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition x:Name="LeftPanelColumn" Width="*" />
+						<ColumnDefinition x:Name="PanelSpacingColumn" Width="12" />
+						<ColumnDefinition x:Name="RightPanelColumn" Width="*" />
+					</Grid.ColumnDefinitions>
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+					</Grid.RowDefinitions>
 
-		<!-- Main Content -->
-		<Grid Grid.Row="1">
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="*" />
-				<ColumnDefinition Width="12" />
-				<ColumnDefinition Width="*" />
-			</Grid.ColumnDefinitions>
+					<!-- Left Panel: Window Info -->
+					<StackPanel x:Name="LeftPanel" Grid.Row="0" Grid.Column="0">
+						<TextBlock Text="Window Information" FontWeight="SemiBold" Margin="0,0,0,8" />
 
-			<!-- Left Panel: Window Info -->
-			<Grid Grid.Column="0">
-				<Grid.RowDefinitions>
-					<RowDefinition Height="Auto" />
-					<RowDefinition Height="*" />
-				</Grid.RowDefinitions>
-
-				<TextBlock Grid.Row="0" Text="Window Information" FontWeight="SemiBold" Margin="0,0,0,8" />
-
-				<ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-					<StackPanel Spacing="6">
+						<StackPanel Spacing="6">
 						<Grid>
 							<Grid.ColumnDefinitions>
 								<ColumnDefinition Width="100" />
@@ -165,23 +163,14 @@
 							<TextBlock Grid.Column="2" Text="Height:" VerticalAlignment="Center" />
 							<TextBox Grid.Column="3" Text="{x:Bind ViewModel.CurrentWindow.Height, Mode=OneWay}" IsReadOnly="True" />
 						</Grid>
+						</StackPanel>
 					</StackPanel>
-				</ScrollViewer>
-			</Grid>
 
-			<!-- Right Panel: Process Info + Actions -->
-			<Grid Grid.Column="2">
-				<Grid.RowDefinitions>
-					<RowDefinition Height="Auto" />
-					<RowDefinition Height="Auto" />
-					<RowDefinition Height="*" />
-					<RowDefinition Height="Auto" />
-					<RowDefinition Height="Auto" />
-				</Grid.RowDefinitions>
+					<!-- Right Panel: Process Info + Actions -->
+					<StackPanel x:Name="RightPanel" Grid.Row="0" Grid.Column="2">
+						<TextBlock Text="Process Information" FontWeight="SemiBold" Margin="0,0,0,8" />
 
-				<TextBlock Grid.Row="0" Text="Process Information" FontWeight="SemiBold" Margin="0,0,0,8" />
-
-				<StackPanel Grid.Row="1" Spacing="6">
+						<StackPanel Spacing="6">
 					<Grid>
 						<Grid.ColumnDefinitions>
 							<ColumnDefinition Width="85" />
@@ -241,31 +230,7 @@
 					</Grid>
 				</StackPanel>
 
-				<!-- Window List -->
-				<Grid Grid.Row="2" Margin="0,12,0,0">
-					<Grid.RowDefinitions>
-						<RowDefinition Height="Auto" />
-						<RowDefinition Height="*" />
-					</Grid.RowDefinitions>
-					<Grid Grid.Row="0" Margin="0,0,0,4">
-						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="*" />
-							<ColumnDefinition Width="Auto" />
-						</Grid.ColumnDefinitions>
-						<TextBlock Text="Window List" FontWeight="SemiBold" VerticalAlignment="Center" />
-						<Button Grid.Column="1" Command="{x:Bind ViewModel.RefreshWindowsCommand, Mode=OneWay}" ToolTipService.ToolTip="Refresh window list" Padding="6,2">
-							<SymbolIcon Symbol="Refresh" />
-						</Button>
-					</Grid>
-					<ListView Grid.Row="1"
-                              x:Name="lvWindows"
-                              ItemsSource="{x:Bind ViewModel.WindowList, Mode=OneWay}"
-                              SelectedItem="{x:Bind ViewModel.SelectedWindowItem, Mode=TwoWay}"
-                              BorderBrush="{ThemeResource SystemControlForegroundBaseMediumLowBrush}"
-                              BorderThickness="1" />
-				</Grid>
-
-				<Grid Grid.Row="3" Margin="0,8,0,0">
+						<Grid Margin="0,12,0,0">
 					<Grid.RowDefinitions>
 						<RowDefinition Height="Auto" />
 						<RowDefinition Height="Auto" />
@@ -293,29 +258,44 @@
 					<Button Grid.Row="3" Grid.Column="0" Content="Enable" Command="{x:Bind ViewModel.EnableCommand, Mode=OneWay}" Margin="2" />
 					<Button Grid.Row="3" Grid.Column="1" Content="Disable" Command="{x:Bind ViewModel.DisableCommand, Mode=OneWay}" Margin="2" />
 					<Button Grid.Row="3" Grid.Column="2" Content="Kill Process" Command="{x:Bind ViewModel.KillProcessCommand, Mode=OneWay}" Margin="2" />
+						</Grid>
+					</StackPanel>
 				</Grid>
-			</Grid>
-		</Grid>
 
-		<!-- Bottom Options Bar -->
-		<Grid Grid.Row="2" Margin="0,12,0,0">
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="Auto" />
-				<ColumnDefinition Width="Auto" />
-				<ColumnDefinition Width="Auto" />
-				<ColumnDefinition Width="Auto" />
-				<ColumnDefinition Width="*" />
-				<ColumnDefinition Width="Auto" />
-				<ColumnDefinition Width="Auto" />
-			</Grid.ColumnDefinitions>
+				<!-- Bottom Options -->
+				<Grid x:Name="BottomOptionsPanel" Margin="0,12,0,0">
+					<Grid.RowDefinitions>
+						<RowDefinition Height="Auto" />
+						<RowDefinition Height="Auto" />
+					</Grid.RowDefinitions>
 
-			<CheckBox Grid.Column="0" x:Name="chkTopmost" Content="Always on Top" Checked="chkTopmost_Checked" Unchecked="chkTopmost_Unchecked" />
-			<CheckBox Grid.Column="1" Content="Auto Mode" Margin="12,0,0,0" IsChecked="{x:Bind ViewModel.IsAutoMode, Mode=TwoWay}" />
-			<CheckBox Grid.Column="2" Content="Show Hidden" Margin="12,0,0,0" IsChecked="{x:Bind ViewModel.ShowHiddenWindows, Mode=TwoWay}" />
-			<CheckBox Grid.Column="3" Content="Enable Grayed" Margin="12,0,0,0" IsChecked="{x:Bind ViewModel.EnableGrayed, Mode=TwoWay}" />
+					<Grid x:Name="CheckBoxRow" Grid.Row="0">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="*" />
+						</Grid.ColumnDefinitions>
 
-			<Button Grid.Column="5" x:Name="btnFindWindow" Content="{x:Bind ViewModel.FindWindowButtonText, Mode=OneWay}" Click="btnFindWindow_Click" Margin="8,0,0,0" ToolTipService.ToolTip="Click, then click any window to select it" />
-			<Button Grid.Column="6" Content="{x:Bind ViewModel.FollowForegroundButtonText, Mode=OneWay}" Click="btnSpy_Click" Margin="8,0,0,0" ToolTipService.ToolTip="Automatically select the active foreground window" />
-		</Grid>
+						<CheckBox Grid.Column="0" x:Name="chkTopmost" AutomationProperties.AutomationId="chkTopmost" Content="Always on Top" Margin="0,0,8,0" Checked="chkTopmost_Checked" Unchecked="chkTopmost_Unchecked" />
+						<CheckBox Grid.Column="1" x:Name="chkAutoMode" AutomationProperties.AutomationId="chkAutoMode" Content="Auto Mode" Margin="0,0,8,0" IsChecked="{x:Bind ViewModel.IsAutoMode, Mode=TwoWay}" />
+						<CheckBox Grid.Column="2" x:Name="chkShowHidden" AutomationProperties.AutomationId="chkShowHidden" Content="Show Hidden" Margin="0,0,8,0" IsChecked="{x:Bind ViewModel.ShowHiddenWindows, Mode=TwoWay}" />
+						<CheckBox Grid.Column="3" x:Name="chkEnableGrayed" AutomationProperties.AutomationId="chkEnableGrayed" Content="Enable Grayed" IsChecked="{x:Bind ViewModel.EnableGrayed, Mode=TwoWay}" />
+					</Grid>
+
+					<Grid x:Name="WindowCommandRow" Grid.Row="1" Margin="0,8,0,0">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="*" />
+						</Grid.ColumnDefinitions>
+
+						<Button Grid.Column="0" x:Name="btnWindowList" AutomationProperties.AutomationId="btnWindowList" Content="Window List" Click="btnWindowList_Click" Margin="0,0,8,0" HorizontalContentAlignment="Center" ToolTipService.ToolTip="Open the standalone window list" />
+						<Button Grid.Column="1" x:Name="btnFindWindow" AutomationProperties.AutomationId="btnFindWindow" Content="{x:Bind ViewModel.FindWindowButtonText, Mode=OneWay}" Click="btnFindWindow_Click" Margin="0,0,8,0" HorizontalContentAlignment="Center" ToolTipService.ToolTip="Click, then click any window to select it" />
+						<Button Grid.Column="2" x:Name="btnSpy" AutomationProperties.AutomationId="btnSpy" Content="{x:Bind ViewModel.FollowForegroundButtonText, Mode=OneWay}" Click="btnSpy_Click" HorizontalContentAlignment="Center" ToolTipService.ToolTip="Automatically select the active foreground window" />
+					</Grid>
+				</Grid>
+			</StackPanel>
+		</ScrollViewer>
 	</Grid>
 </Window>

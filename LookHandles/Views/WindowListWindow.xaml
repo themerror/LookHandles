@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+	x:Class="LookHandles.WindowListWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:models="using:LookHandles.Models"
+	Title="Window List">
+
+	<Grid x:Name="RootGrid" Padding="12" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+		<Grid.Resources>
+			<DataTemplate x:Key="WindowListItemTemplate" x:DataType="models:WindowListItem">
+				<StackPanel Spacing="4" Margin="0,4">
+					<TextBlock TextTrimming="CharacterEllipsis">
+						<Run Text="{x:Bind HandleDisplay, Mode=OneTime}" FontWeight="SemiBold" />
+						<Run Text="  " />
+						<Run Text="{x:Bind WindowText, Mode=OneTime}" />
+					</TextBlock>
+					<TextBlock FontSize="12"
+							   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+							   TextTrimming="CharacterEllipsis">
+						<Run Text="Class: " />
+						<Run Text="{x:Bind ClassName, Mode=OneTime}" />
+						<Run Text="    Process: " />
+						<Run Text="{x:Bind ProcessName, Mode=OneTime}" />
+					</TextBlock>
+				</StackPanel>
+			</DataTemplate>
+		</Grid.Resources>
+
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="*" />
+		</Grid.RowDefinitions>
+
+		<Grid Grid.Row="0" Margin="0,0,0,8">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="Auto" />
+			</Grid.ColumnDefinitions>
+			<TextBlock Text="Window List"
+					   FontSize="18"
+					   FontWeight="Bold"
+					   VerticalAlignment="Center" />
+			<Button Grid.Column="1"
+					x:Name="RefreshButton"
+					AutomationProperties.AutomationId="RefreshButton"
+					AutomationProperties.Name="Refresh window list"
+					Command="{x:Bind ViewModel.RefreshWindowsCommand, Mode=OneWay}"
+					ToolTipService.ToolTip="Refresh window list"
+					Padding="6,2">
+				<SymbolIcon Symbol="Refresh" />
+			</Button>
+		</Grid>
+
+		<ListView Grid.Row="1"
+				  x:Name="WindowListView"
+				  AutomationProperties.AutomationId="WindowListView"
+				  AutomationProperties.Name="Window list"
+				  ItemsSource="{x:Bind ViewModel.WindowList, Mode=OneWay}"
+				  ItemTemplate="{StaticResource WindowListItemTemplate}"
+				  SelectedItem="{x:Bind ViewModel.SelectedWindowItem, Mode=TwoWay}"
+				  SelectionMode="Single"
+				  ScrollViewer.VerticalScrollBarVisibility="Auto"
+				  BorderBrush="{ThemeResource SystemControlForegroundBaseMediumLowBrush}"
+				  BorderThickness="1" />
+	</Grid>
+</Window>
