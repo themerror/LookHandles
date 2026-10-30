@@ -10,7 +10,7 @@
 	<Identity
 	  Name="themerror.LookHandles"
 	  Publisher="CN=B5BB57C0-AD91-47B5-8738-C2B1CC229E83"
-	  Version="0.1.0.0" />
+	  Version="0.2.0.0" />
 
 	<Properties>
 		<DisplayName>LookHandles</DisplayName>
